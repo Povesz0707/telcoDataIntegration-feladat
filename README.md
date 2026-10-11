@@ -167,17 +167,3 @@ Paraméterek:
 - `onlyValid`: `true` esetén csak a valid rekordok kerülnek visszaadásra; üres vagy `false` értéknél minden rekord visszakerül.
 
 Engedélyezett rendezési mezők: `sku`, `name`, `manufacturer`, `finalPriceHuf`, `stock`, `updatedAt`, `source`.
-
-## Tervezési döntések
-
-- A nyers forrásrekordok változatlanul megmaradnak.
-- A forrásprioritás nem globális állapot, hanem egy normalizálási futás paramétere.
-- A kiválasztott elsődleges forrás felülírja az eltérő értékeket.
-- A másodlagos forrás csak hiányzó mezőt pótolhat, ha a fallback engedélyezett.
-- A null készlet hiányzó adat, a nulla készlet érvényes érték.
-- Az EAN és az `updatedAt` opcionális, a SKU, név, gyártó, ár és készlet a minimális valid rekord része.
-- A hibás rekord nem vész el: validációs issue-k mellett tárolódik, és `onlyValid=true` esetén szűrhető ki.
-- Az issue-kódok backend és frontend oldalon enumok; a megjelenítésük a `frontend/src/assets/i18n/hu.json` nyelvi fájlból történik.
-- Az issue-k tagek a lokalizált kód mellett a kapcsolódó mezőt is megjelenítik, például: `Duplikált elsődleges forrás · SKU`.
-- A PrimeNG komponensek saját üzenetei is ugyanebből a nyelvi konfigurációból kerülnek beállításra.
-- A backend kizárólag PostgreSQL-t használ, H2 nincs a projektben.
