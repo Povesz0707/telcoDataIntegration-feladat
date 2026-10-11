@@ -1,0 +1,138 @@
+<p-table
+  [value]="runs"
+  [tableStyle]="{ 'min-width': '62rem' }"
+  responsiveLayout="scroll"
+  filterDisplay="row"
+  [filterDelay]="350"
+  sortField="startedAt"
+  [sortOrder]="-1"
+  size="small"
+  stripedRows
+  styleClass="p-datatable-sm">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>{{ i18n.t('processing.historyColumns.active') }}</th>
+      <th pSortableColumn="runId">
+        {{ i18n.t('processing.historyColumns.runId') }}
+        <p-sortIcon field="runId"></p-sortIcon>
+      </th>
+      <th pSortableColumn="startedAt">
+        {{ i18n.t('processing.historyColumns.startedAt') }}
+        <p-sortIcon field="startedAt"></p-sortIcon>
+      </th>
+      <th pSortableColumn="totalCount">
+        {{ i18n.t('processing.historyColumns.totalRecords') }}
+        <p-sortIcon field="totalCount"></p-sortIcon>
+      </th>
+      <th pSortableColumn="validCount">
+        {{ i18n.t('processing.historyColumns.valid') }}
+        <p-sortIcon field="validCount"></p-sortIcon>
+      </th>
+      <th pSortableColumn="invalidCount">
+        {{ i18n.t('processing.historyColumns.invalid') }}
+        <p-sortIcon field="invalidCount"></p-sortIcon>
+      </th>
+      <th pSortableColumn="primarySource">
+        {{ i18n.t('processing.historyColumns.primarySource') }}
+        <p-sortIcon field="primarySource"></p-sortIcon>
+      </th>
+      <th pSortableColumn="fallbackMissingValues">
+        {{ i18n.t('processing.historyColumns.fallbackMissingValues') }}
+        <p-sortIcon field="fallbackMissingValues"></p-sortIcon>
+      </th>
+      <th pSortableColumn="csvFilename">
+        {{ i18n.t('common.csv') }}
+        <p-sortIcon field="csvFilename"></p-sortIcon>
+      </th>
+      <th pSortableColumn="jsonFilename">
+        {{ i18n.t('common.json') }}
+        <p-sortIcon field="jsonFilename"></p-sortIcon>
+      </th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>
+        <p-columnFilter field="runId" type="numeric" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter field="startedAt" type="text" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter field="totalCount" type="numeric" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter field="validCount" type="numeric" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter field="invalidCount" type="numeric" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter field="primarySource" matchMode="equals" [showMenu]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-select
+              [options]="sourceOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="value"
+              (ngModelChange)="filter($event)"
+              [showClear]="true"
+              [placeholder]="i18n.t('products.filters.any')">
+            </p-select>
+          </ng-template>
+        </p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter field="fallbackMissingValues" matchMode="equals" [showMenu]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-select
+              [options]="fallbackOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="value"
+              (ngModelChange)="filter($event)"
+              [showClear]="true"
+              [placeholder]="i18n.t('products.filters.any')">
+            </p-select>
+          </ng-template>
+        </p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter field="csvFilename" type="text" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter field="jsonFilename" type="text" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+      </th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-run>
+    <tr
+      class="cursor-pointer"
+      [class.bg-primary-50]="run.runId === selectedRunId"
+      tabindex="0"
+      (click)="selectRun(run)"
+      (keydown.enter)="selectRun(run)">
+      <td>
+        <p-tag *ngIf="run.runId === selectedRunId" [value]="i18n.t('processing.historyColumns.active')" icon="pi pi-eye" severity="info"></p-tag>
+        <span *ngIf="run.runId !== selectedRunId" class="text-color-secondary">{{ i18n.t('common.none') }}</span>
+      </td>
+      <td class="font-semibold">{{ run.runId }}</td>
+      <td class="white-space-nowrap">{{ formatDate(run.startedAt) }}</td>
+      <td>{{ run.totalCount }}</td>
+      <td><p-tag [value]="run.validCount.toString()" severity="success"></p-tag></td>
+      <td><p-tag [value]="run.invalidCount.toString()" severity="danger"></p-tag></td>
+      <td><p-tag [value]="i18n.source(run.primarySource)" severity="info"></p-tag></td>
+      <td>
+        <p-tag
+          [value]="i18n.t(run.fallbackMissingValues ? 'common.yes' : 'common.no')"
+          [severity]="run.fallbackMissingValues ? 'success' : 'secondary'"></p-tag>
+      </td>
+      <td class="text-sm white-space-nowrap overflow-hidden text-overflow-ellipsis" [title]="run.csvFilename">{{ run.csvFilename }}</td>
+      <td class="text-sm white-space-nowrap overflow-hidden text-overflow-ellipsis" [title]="run.jsonFilename">{{ run.jsonFilename }}</td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="10" class="text-center p-5 text-color-secondary">{{ i18n.t('processing.historyEmpty') }}</td>
+    </tr>
+  </ng-template>
+</p-table>

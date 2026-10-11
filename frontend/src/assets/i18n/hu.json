@@ -1,0 +1,137 @@
+{
+  "app": {
+    "brand": "TELCO DATA INTEGRATION",
+    "documentTitle": "Telco Data Integration",
+    "title": "Termékadatok normalizálása"
+  },
+  "common": {
+    "csv": "CSV",
+    "json": "JSON",
+    "notAvailable": "n.a.",
+    "none": "-",
+    "yes": "Igen",
+    "no": "Nem",
+    "valid": "Valid",
+    "invalid": "Hibás",
+    "selected": "Kiválasztva",
+    "currency": "Ft"
+  },
+  "sources": {
+    "CSV": "CSV",
+    "JSON": "JSON",
+    "CSV_JSON": "CSV + JSON"
+  },
+  "fields": {
+    "sku": "SKU",
+    "name": "Termék",
+    "manufacturer": "Gyártó",
+    "finalPriceHuf": "Bruttó ár",
+    "stock": "Készlet",
+    "ean": "EAN",
+    "updatedAt": "Frissítve",
+    "source": "Forrás"
+  },
+  "upload": {
+    "open": "Adatforrások feltöltése",
+    "dialogTitle": "Adatforrások feltöltése",
+    "description": "Mindkét fájl szükséges a normalizálás indításához.",
+    "csvSource": "CSV forrás",
+    "csvDescription": ".csv formátum · legfeljebb 5 MB",
+    "jsonSource": "JSON forrás",
+    "jsonDescription": ".json formátum · legfeljebb 5 MB",
+    "dropHint": "Húzd ide a fájlt",
+    "dropActive": "Engedd el a fájlt",
+    "removeFile": "Fájl eltávolítása",
+    "invalidType": "Nem megfelelő fájltípus.",
+    "invalidSize": "A fájl mérete nem lehet nagyobb 5 MB-nál.",
+    "primarySource": "Elsődleges adatforrás",
+    "fallbackMissingValues": "Hiányzó érték pótlása a másodlagos forrásból",
+    "process": "Feldolgozás"
+  },
+  "processing": {
+    "loading": "Adatok feldolgozása folyamatban...",
+    "ariaLabel": "Feldolgozás folyamatban",
+    "historyTitle": "Feldolgozások",
+    "historyEmpty": "Még nincs feldolgozási előzmény.",
+    "historyCount": "{count} feldolgozás",
+    "historyLast": "Utolsó: Futás #{runId} · elsődleges forrás: {primarySource} · {count} rekord · {date}",
+    "historyCurrent": "Aktuális lista: Futás #{runId} · elsődleges forrás: {primarySource} · {count} rekord · {date}",
+    "historyColumns": {
+      "runId": "Azonosító",
+      "startedAt": "Dátum és idő",
+      "totalRecords": "Összes rekord",
+      "valid": "Valid",
+      "invalid": "Hibás",
+      "primarySource": "Elsődleges forrás",
+      "fallbackMissingValues": "Hiányzó érték pótlása",
+      "files": "Felhasznált fájlok",
+      "active": "Aktív"
+    }
+  },
+  "products": {
+    "title": "Normalizált termékek",
+    "latestRun": "Legutóbbi futás #{runId}",
+    "runSummary": "Futás #{runId} · elsődleges forrás: {primarySource} · {count} rekord",
+    "emptyRun": "Még nincs normalizálási eredmény.",
+    "emptyTable": "Nincs megjeleníthető rekord.",
+    "search": "Keresés",
+    "searchPlaceholder": "SKU, név, gyártó vagy EAN",
+    "sort": "Rendezés",
+    "onlyValid": "Csak valid",
+    "refresh": "Frissítés",
+    "filters": {
+      "contains": "Szűrés...",
+      "any": "Mind"
+    },
+    "columns": {
+      "sku": "SKU",
+      "product": "Termék",
+      "manufacturer": "Gyártó",
+      "grossPrice": "Bruttó ár",
+      "stock": "Készlet",
+      "ean": "EAN",
+      "updatedAt": "Frissítve",
+      "source": "Forrás",
+      "status": "Állapot",
+      "issues": "Jelzések"
+    },
+    "sortOptions": {
+      "skuAsc": "SKU növekvő",
+      "nameAsc": "Név növekvő",
+      "priceAsc": "Ár növekvő",
+      "priceDesc": "Ár csökkenő",
+      "stockDesc": "Készlet csökkenő"
+    }
+  },
+  "issues": {
+    "dialogTitle": "Issue-k",
+    "errorGroup": "Hibák",
+    "warningGroup": "Figyelmeztetések",
+    "fieldLabel": "Mező",
+    "empty": "Nincs issue.",
+    "openAriaLabel": "Jelzések megnyitása",
+    "MISSING_SKU": "Hiányzó SKU",
+    "DUPLICATE_PRIMARY_SOURCE": "Duplikált elsődleges forrás",
+    "DUPLICATE_SECONDARY_SOURCE": "Duplikált másodlagos forrás",
+    "SOURCE_ONLY_RECORD": "Csak az egyik forrásban szerepel",
+    "FALLBACK_VALUE_USED": "Másodlagos forrásból pótolva",
+    "SOURCE_CONFLICT": "Források közötti eltérés",
+    "MISSING_REQUIRED_FIELD": "Hiányzó kötelező mező",
+    "UNSUPPORTED_CURRENCY": "Nem támogatott pénznem"
+  },
+  "errors": {
+    "generic": "Ismeretlen hiba történt.",
+    "badRequest": "A megadott adatok vagy fájlok nem megfelelőek.",
+    "notFound": "A kért adat nem található.",
+    "server": "A feldolgozás közben szerverhiba történt."
+  },
+  "primeNg": {
+    "choose": "Kiválasztás",
+    "upload": "Feltöltés",
+    "cancel": "Mégse",
+    "remove": "Eltávolítás",
+    "empty": "Nincs kiválasztott fájl",
+    "invalidFileSize": "A fájl mérete túl nagy.",
+    "invalidFileType": "Nem támogatott fájltípus."
+  }
+}

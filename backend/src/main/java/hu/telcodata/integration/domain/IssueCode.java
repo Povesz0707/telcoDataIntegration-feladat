@@ -1,0 +1,12 @@
+package hu.telcodata.integration.domain;
+
+public enum IssueCode {
+    MISSING_SKU,
+    DUPLICATE_PRIMARY_SOURCE,
+    DUPLICATE_SECONDARY_SOURCE,
+    SOURCE_ONLY_RECORD,
+    FALLBACK_VALUE_USED,
+    SOURCE_CONFLICT,
+    MISSING_REQUIRED_FIELD,
+    UNSUPPORTED_CURRENCY
+}

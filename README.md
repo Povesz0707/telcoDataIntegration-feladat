@@ -1,0 +1,183 @@
+# Telco Data Integration
+
+Full-stack referencia-implementáció két eltérő termékadatforrás feltöltéséhez, normalizálásához és lekérdezéséhez.
+
+## Technológiák
+
+- Backend: Java 21, Spring Boot, Spring Data JPA, PostgreSQL, MapStruct, Lombok
+- API dokumentáció: OpenAPI 3, Springdoc Swagger UI
+- Frontend: Angular, PrimeNG, PrimeFlex, TypeScript
+- Tesztelés: JUnit 5, Spring Boot Test, Playwright
+- Minőségellenőrzés: JaCoCo
+
+## Futtatás
+
+### Docker Compose
+
+```text
+docker compose up --build
+```
+
+- Frontend: `http://localhost:4200`
+- Backend: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- PostgreSQL: `localhost:5432`, adatbázis `telco`, felhasználó `telco`
+
+Az adatbázis adatai a `postgres-data` Docker volume-ban maradnak meg.
+
+### Backend fejlesztői futtatása
+
+```text
+cd backend
+mvn spring-boot:run
+```
+
+A backend alapértelmezett címe: `http://localhost:8080`. A lokálisan indított backend PostgreSQL-hez csatlakozik a `localhost:5432` címen.
+
+### Frontend
+
+```text
+cd frontend
+npm ci
+npm start
+```
+
+A frontend alapértelmezett címe: `http://localhost:4200`.
+
+## Tesztelés
+
+### JaCoCo coverage riport
+
+A coverage riport újrafuttatható PowerShell szkripttel:
+
+```text
+.\scripts\coverage.ps1
+```
+
+Az újrafuttatható script lefuttatja a backend unit teszteket, majd elkészíti a
+JaCoCo HTML és XML riportot. Az elkészült fájlok:
+
+- `reports/jacoco/index.html` – böngészhető JaCoCo riport.
+- `reports/jacoco/jacoco.xml` – géppel feldolgozható coverage riport.
+
+### Backend unit tesztek
+
+```text
+cd backend
+mvn test
+```
+
+A unit tesztek lefedik többek között a SKU-normalizálást, a kötelező mezők validációját,
+a fallback működését, a forrásütközéseket, a duplikációkat és a nem támogatott pénznemet.
+Emellett a service réteg pozitív és negatív ágai is tesztelve vannak: fájlfeltöltés/parszolás,
+terméklekérdezés, szűrés és rendezés, feldolgozási futás, hiányzó erőforrások és hibás bemenetek.
+
+### Playwright felületi tesztek
+
+A Playwright tesztek futtatásához a PostgreSQL, backend és frontend szolgáltatásoknak futniuk kell:
+
+```text
+docker compose up -d --build
+cd frontend
+npm ci
+npx playwright install chromium
+npm run e2e
+```
+
+A felületi tesztek lefedik a legutóbbi feldolgozás betöltését, a szűrést és üres eredményt,
+az issue dialogot, a feldolgozások accordioni működését, a hibás fájltípust és az API-hiba megjelenítését.
+
+## Működés
+
+1. CSV és JSON fájl feltöltése külön upload műveletben.
+2. A feltöltött rekordok forrásonként külön táblába kerülnek.
+3. A felhasználó kiválasztja az elsődleges adatforrást.
+4. Opcionálisan engedélyezi a hiányzó mezők pótlását a másodlagos forrásból.
+5. A backend létrehoz egy normalizálási futást.
+6. A normalizált rekordok és validációs hibák külön tárolódnak.
+7. A `GET /api/products` a megadott normalizálási futás eredményét olvassa; `runId` nélkül automatikusan a legutóbbi sikeres futást adja vissza.
+
+### Felület működése
+
+- Az Angular felület PrimeNG alapkomponenseket és a hivatalos Aura témát használja, egyedi komponensfelülírás nélkül.
+- Az adatforrás-feltöltés a főoldali gomb mögötti PrimeNG dialogban történik.
+- A feltöltés és normalizálás alatt a táblázat PrimeNG loading/skeleton állapotot jelenít meg.
+- Az alkalmazás induláskor automatikusan betölti a legutóbbi sikeres normalizálási futást.
+- A legutóbbi eredményhez tartozó valid/hibás darabszám, keresés, rendezés és `Csak valid` szűrés azonnal elérhető.
+- Új feldolgozáskor a feltöltött fájlokból létrejövő futás válik az aktuális eredménnyé.
+- A táblázat fejlécében oszloponkénti szűrők vannak, a rendezés a fejléc címére kattintva történik.
+- Több oszlop szűrője egyszerre használható; ezek együttesen, összetett `AND` feltételként érvényesülnek.
+- Az Issue-k oszlopban egy darabszámot mutató gomb nyitja meg az issue dialogot; az ERROR-ok és WARNING-ok külön csoportban, ebben a sorrendben jelennek meg.
+
+## API
+
+Az interaktív API dokumentáció a Swagger UI felületén érhető el:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+Az OpenAPI 3 specifikáció JSON formátumban:
+
+```text
+http://localhost:8080/v3/api-docs
+```
+
+### Fájlok feltöltése
+
+```http
+POST /api/uploads/csv
+POST /api/uploads/json
+```
+
+Mindkét végpont `multipart/form-data` formátumban, `file` mezőnévvel várja a fájlt.
+
+### Normalizálási futás indítása
+
+```http
+POST /api/processing-runs
+Content-Type: application/json
+
+{
+  "csvBatchId": 1,
+  "jsonBatchId": 2,
+  "primarySource": "JSON",
+  "fallbackMissingValues": true
+}
+```
+
+### Termékek lekérdezése
+
+```http
+GET /api/products?runId=1&filter=monitor&sort=finalPriceHuf:asc&onlyValid=false
+```
+
+A `runId` opcionális. Ha elhagyjuk, a végpont a legutóbbi sikeres normalizálási futás eredményét adja vissza:
+
+```http
+GET /api/products?filter=&sort=&onlyValid=
+```
+
+Paraméterek:
+
+- `runId`: a lekérdezendő feldolgozási futás azonosítója; hiányában a legutóbbi sikeres futás kerül kiválasztásra.
+- `filter`: szabad szöveges szűrő; üres értéknél nincs szűrés.
+- `sort`: rendezés `mező:asc` vagy `mező:desc` formátumban; üres értéknél az alapértelmezett rendezés érvényesül.
+- `onlyValid`: `true` esetén csak a valid rekordok kerülnek visszaadásra; üres vagy `false` értéknél minden rekord visszakerül.
+
+Engedélyezett rendezési mezők: `sku`, `name`, `manufacturer`, `finalPriceHuf`, `stock`, `updatedAt`, `source`.
+
+## Tervezési döntések
+
+- A nyers forrásrekordok változatlanul megmaradnak.
+- A forrásprioritás nem globális állapot, hanem egy normalizálási futás paramétere.
+- A kiválasztott elsődleges forrás felülírja az eltérő értékeket.
+- A másodlagos forrás csak hiányzó mezőt pótolhat, ha a fallback engedélyezett.
+- A null készlet hiányzó adat, a nulla készlet érvényes érték.
+- Az EAN és az `updatedAt` opcionális, a SKU, név, gyártó, ár és készlet a minimális valid rekord része.
+- A hibás rekord nem vész el: validációs issue-k mellett tárolódik, és `onlyValid=true` esetén szűrhető ki.
+- Az issue-kódok backend és frontend oldalon enumok; a megjelenítésük a `frontend/src/assets/i18n/hu.json` nyelvi fájlból történik.
+- Az issue-k tagek a lokalizált kód mellett a kapcsolódó mezőt is megjelenítik, például: `Duplikált elsődleges forrás · SKU`.
+- A PrimeNG komponensek saját üzenetei is ugyanebből a nyelvi konfigurációból kerülnek beállításra.
+- A backend kizárólag PostgreSQL-t használ, H2 nincs a projektben.

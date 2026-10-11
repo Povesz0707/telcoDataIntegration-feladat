@@ -1,0 +1,13 @@
+sku,product_name,gross_price_huf,stock_qty,brand
+P-1001,ACME Widget Mini,12 700,15,ACME
+P-1002,ACME Widget Pro,25 400,8,ACME
+P-1003,Bolt M6x20 (50 db),3 175,120,FixIt
+P-1004,Kábel Cat6 1m,1 905,0,Wire&Co
+P-1005,Kábel Cat6 3m,3 175,,Wire&Co
+P_1006,USB-C töltő 20W,6 350,42,Voltix
+P-1007,USB-C kábel 1m (fehér),2 540,200,Voltix
+P-1008,"Monitor 24""",63 500,5,VIEWTEK
+P-1009,"Monitor 27""",95 250,3,VIEWTEK
+P-1010,Billentyűzet HU,12 700,30,KeyWave
+P-1002,ACME Widget Pro,25 400,7,ACME
+,Ismeretlen termék,999,1,N/A

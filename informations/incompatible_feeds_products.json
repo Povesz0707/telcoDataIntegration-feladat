@@ -1,0 +1,112 @@
+[
+  {
+    "id": "SKU1001",
+    "name": "Acme widget mini",
+    "netPrice": 10000,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 14,
+    "manufacturer": "ACME",
+    "ean": "5991234500011",
+    "updatedAt": "2025-10-01T10:00:00Z"
+  },
+  {
+    "id": "SKU1002",
+    "name": "Acme Widget PRO",
+    "netPrice": 20000,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 9,
+    "manufacturer": "ACME",
+    "ean": "5991234500028",
+    "updatedAt": "2025-10-02T10:00:00Z"
+  },
+  {
+    "id": "SKU1003",
+    "name": "Bolt M6x20 (pack of 50)",
+    "netPrice": 2500,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 118,
+    "manufacturer": "Fix-It",
+    "ean": null,
+    "updatedAt": "2025-09-28T08:12:00Z"
+  },
+  {
+    "id": "SKU-1004",
+    "name": "Cat6 Cable 1m",
+    "netPrice": 1500,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 0,
+    "manufacturer": "WIRECO",
+    "ean": "5991234500042",
+    "updatedAt": "2025-11-01T13:45:00Z"
+  },
+  {
+    "id": "SKU-1006",
+    "name": "USB-C Charger 20W",
+    "netPrice": 5000,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 41,
+    "manufacturer": "Voltix",
+    "ean": "5991234500066",
+    "updatedAt": "2025-10-15T09:22:00Z"
+  },
+  {
+    "id": "SKU1007",
+    "name": "USB-C Cable 1m White",
+    "netPrice": 2000,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 200,
+    "manufacturer": "Voltix",
+    "ean": "5991234500073",
+    "updatedAt": "2025-09-20T11:05:00Z"
+  },
+  {
+    "id": "SKU1008",
+    "name": "Monitor 24-inch",
+    "netPrice": 50000,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 4,
+    "manufacturer": "ViewTek",
+    "ean": "5991234500080",
+    "updatedAt": "2025-11-02T08:00:00Z"
+  },
+  {
+    "id": "SKU1009",
+    "name": "Monitor 27-inch",
+    "netPrice": 75000,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 3,
+    "manufacturer": "ViewTek",
+    "ean": "5991234500097",
+    "updatedAt": "2025-11-02T08:10:00Z"
+  },
+  {
+    "id": "SKU1010",
+    "name": "Keyboard HU",
+    "netPrice": 10000,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": null,
+    "manufacturer": "KeyWave",
+    "ean": "5991234500103",
+    "updatedAt": "2025-10-29T07:00:00Z"
+  },
+  {
+    "id": "SKU-XYZ",
+    "name": "Unknown",
+    "netPrice": null,
+    "currency": "HUF",
+    "vatRate": 0.27,
+    "quantityAvailable": 1,
+    "manufacturer": null,
+    "ean": null,
+    "updatedAt": "2025-11-03T07:00:00Z"
+  }
+]

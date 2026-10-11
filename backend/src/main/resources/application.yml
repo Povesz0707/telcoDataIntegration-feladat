@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: telco-data-integration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/telco}
+    username: ${SPRING_DATASOURCE_USERNAME:telco}
+    password: ${SPRING_DATASOURCE_PASSWORD:telco}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+
