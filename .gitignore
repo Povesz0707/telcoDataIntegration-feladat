@@ -20,6 +20,7 @@ frontend/playwright-report/
 frontend/.cache/
 frontend/coverage/
 reports/
+informations/
 coverage/
 dump.rdb
 Thumbs.db
