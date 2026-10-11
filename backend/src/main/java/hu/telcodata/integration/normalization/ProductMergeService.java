@@ -56,14 +56,14 @@ public class ProductMergeService {
         SourceCandidate secondaryCandidate = first(secondary);
         SourceCandidate base = primaryCandidate != null ? primaryCandidate : secondaryCandidate;
 
-        ProductMergeValues values = resolveValues(base, primaryCandidate, secondaryCandidate,
+        ProductMergeValues values = resolveValues(primaryCandidate, secondaryCandidate,
                 fallbackMissingValues || primaryCandidate == null);
         String source = primaryCandidate != null && secondaryCandidate != null
                 ? "CSV+JSON"
                 : base == null ? primarySource.name() : base.sourceType().name();
 
         NormalizedProduct product = new NormalizedProduct(
-                displaySku(base, key), values.name(), values.manufacturer(), values.finalPriceHuf(),
+                displaySku(base), values.name(), values.manufacturer(), values.finalPriceHuf(),
                 values.stock(), values.ean(), values.updatedAt(), source, primarySource.name());
 
         if (base == null || isBlank(base.rawSku())) {
@@ -89,7 +89,7 @@ public class ProductMergeService {
         return product;
     }
 
-    private ProductMergeValues resolveValues(SourceCandidate base, SourceCandidate primary,
+    private ProductMergeValues resolveValues(SourceCandidate primary,
                                              SourceCandidate secondary, boolean allowFallback) {
         return new ProductMergeValues(
                 resolve(primary, secondary, SourceCandidate::name, allowFallback),
@@ -183,7 +183,7 @@ public class ProductMergeService {
         }
     }
 
-    private String displaySku(SourceCandidate base, String key) {
+    private String displaySku(SourceCandidate base) {
         return base == null || isBlank(base.rawSku()) ? null : base.rawSku().trim();
     }
 
