@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -128,6 +129,21 @@ class UploadServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("The JSON file could not be parsed")
                 .hasCauseInstanceOf(Exception.class);
+    }
+
+    @Test
+    void atomicUploadValidatesBothFilesBeforePersistingEitherSource() {
+        MultipartFile csvFile = new MockMultipartFile("csvFile", "products.csv", "text/csv",
+                "sku,product_name,gross_price_huf,stock_qty,brand\nSKU-1,Widget,100,2,ACME\n".getBytes());
+        MultipartFile jsonFile = new MockMultipartFile("jsonFile", "broken.json", "application/json",
+                "{broken-json".getBytes());
+
+        assertThatThrownBy(() -> service.uploadSources(csvFile, jsonFile))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("The JSON file could not be parsed");
+
+        verifyNoInteractions(uploadBatchRepository, csvProductSourceRepository,
+                jsonProductSourceRepository, sourceMapper);
     }
 
     @Test

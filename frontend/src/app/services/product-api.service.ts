@@ -8,7 +8,8 @@ import {
   ProcessingRunRequest,
   ProcessingRunResponse,
   SourceType,
-  UploadResponse
+  UploadResponse,
+  UploadSourcesResponse
 } from '../models/product.models';
 
 @Injectable({ providedIn: 'root' })
@@ -22,6 +23,13 @@ export class ProductApiService {
 
   uploadJson(file: File): Observable<UploadResponse> {
     return this.upload('/uploads/json', file);
+  }
+
+  uploadSources(csvFile: File, jsonFile: File): Observable<UploadSourcesResponse> {
+    const formData = new FormData();
+    formData.append('csvFile', csvFile, csvFile.name);
+    formData.append('jsonFile', jsonFile, jsonFile.name);
+    return this.http.post<UploadSourcesResponse>(`${this.baseUrl}/uploads/sources`, formData);
   }
 
   process(request: ProcessingRunRequest): Observable<ProcessingRunResponse> {

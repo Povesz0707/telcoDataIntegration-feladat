@@ -38,6 +38,22 @@ describe('ProductApiService', () => {
     request.flush({ batchId: 1, sourceType: SourceType.CSV });
   });
 
+  it('uploads the CSV and JSON files in one multipart request', () => {
+    const csvFile = new File(['sku,name\nSKU-1,Product'], 'products.csv', { type: 'text/csv' });
+    const jsonFile = new File(['[]'], 'products.json', { type: 'application/json' });
+
+    service.uploadSources(csvFile, jsonFile).subscribe();
+
+    const request = httpTesting.expectOne('/api/uploads/sources');
+    expect(request.request.method).toBe('POST');
+    const formData = request.request.body as FormData;
+    expect(formData.get('csvFile')).toEqual(jasmine.any(File));
+    expect((formData.get('csvFile') as File).name).toBe('products.csv');
+    expect(formData.get('jsonFile')).toEqual(jasmine.any(File));
+    expect((formData.get('jsonFile') as File).name).toBe('products.json');
+    request.flush({ csv: {}, json: {} });
+  });
+
   it('builds the paged product query with global and field filters', () => {
     service.getProductsPage({
       runId: 7,

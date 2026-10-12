@@ -7,7 +7,7 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
 import { ToolbarModule } from 'primeng/toolbar';
-import { EMPTY, catchError, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, finalize, map, of, switchMap, tap } from 'rxjs';
 import { ProductTableComponent } from './components/product-table/product-table.component';
 import { ProcessingRunsTableComponent } from './components/processing-runs-table/processing-runs-table.component';
 import { UploadPanelComponent } from './components/upload-panel/upload-panel.component';
@@ -65,10 +65,7 @@ export class AppComponent implements OnInit {
     this.busy.set(true);
     this.errorMessage.set(null);
 
-    forkJoin({
-      csv: this.api.uploadCsv(selection.csvFile),
-      json: this.api.uploadJson(selection.jsonFile)
-    }).pipe(
+    this.api.uploadSources(selection.csvFile, selection.jsonFile).pipe(
       switchMap(({ csv, json }) => this.api.process({
         csvBatchId: csv.batchId,
         jsonBatchId: json.batchId,

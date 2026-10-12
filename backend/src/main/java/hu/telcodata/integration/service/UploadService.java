@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReaderHeaderAware;
 import hu.telcodata.integration.api.UploadResponseDto;
+import hu.telcodata.integration.api.UploadSourcesResponseDto;
 import hu.telcodata.integration.constant.MessageConstants;
 import hu.telcodata.integration.domain.CsvProductSource;
 import hu.telcodata.integration.domain.JsonProductSource;
@@ -46,9 +47,32 @@ public class UploadService {
     private final JsonProductSourceRepository jsonProductSourceRepository;
 
     @Transactional
+    public UploadSourcesResponseDto uploadSources(MultipartFile csvFile, MultipartFile jsonFile) {
+        byte[] csvContent = readContent(csvFile);
+        List<CsvProductInputDto> csvInputs = parseCsv(csvContent);
+        byte[] jsonContent = readContent(jsonFile);
+        List<JsonProductInputDto> jsonInputs = parseJson(jsonContent);
+
+        UploadBatch csvBatch = storeCsv(csvFile, csvContent, csvInputs);
+        UploadBatch jsonBatch = storeJson(jsonFile, jsonContent, jsonInputs);
+        return new UploadSourcesResponseDto(toResponse(csvBatch), toResponse(jsonBatch));
+    }
+
+    @Transactional
     public UploadResponseDto uploadCsv(MultipartFile file) {
         byte[] content = readContent(file);
         List<CsvProductInputDto> inputs = parseCsv(content);
+        return toResponse(storeCsv(file, content, inputs));
+    }
+
+    @Transactional
+    public UploadResponseDto uploadJson(MultipartFile file) {
+        byte[] content = readContent(file);
+        List<JsonProductInputDto> inputs = parseJson(content);
+        return toResponse(storeJson(file, content, inputs));
+    }
+
+    private UploadBatch storeCsv(MultipartFile file, byte[] content, List<CsvProductInputDto> inputs) {
         UploadBatch batch = new UploadBatch(SourceType.CSV, file.getOriginalFilename(), checksum(content),
                 Instant.now(), UploadStatus.COMPLETED, inputs.size());
         uploadBatchRepository.save(batch);
@@ -60,13 +84,10 @@ public class UploadService {
             entities.add(entity);
         }
         csvProductSourceRepository.saveAll(entities);
-        return toResponse(batch);
+        return batch;
     }
 
-    @Transactional
-    public UploadResponseDto uploadJson(MultipartFile file) {
-        byte[] content = readContent(file);
-        List<JsonProductInputDto> inputs = parseJson(content);
+    private UploadBatch storeJson(MultipartFile file, byte[] content, List<JsonProductInputDto> inputs) {
         UploadBatch batch = new UploadBatch(SourceType.JSON, file.getOriginalFilename(), checksum(content),
                 Instant.now(), UploadStatus.COMPLETED, inputs.size());
         uploadBatchRepository.save(batch);
@@ -78,7 +99,7 @@ public class UploadService {
             entities.add(entity);
         }
         jsonProductSourceRepository.saveAll(entities);
-        return toResponse(batch);
+        return batch;
     }
 
     private List<CsvProductInputDto> parseCsv(byte[] content) {

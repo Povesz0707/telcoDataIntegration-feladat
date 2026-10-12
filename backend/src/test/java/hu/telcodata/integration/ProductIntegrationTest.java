@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -198,6 +199,20 @@ class ProductIntegrationTest {
         mockMvc.perform(get("/api/products/page").param("page", "not-a-number"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Invalid value for request parameter page: not-a-number"));
+    }
+
+    @Test
+    void atomicallyRejectsSourceUploadWhenTheSecondFileIsInvalid() throws Exception {
+        mockMvc.perform(multipart("/api/uploads/sources")
+                        .file(new MockMultipartFile("csvFile", "products.csv", "text/csv",
+                                CSV_CONTENT.getBytes(StandardCharsets.UTF_8)))
+                        .file(new MockMultipartFile("jsonFile", "broken.json", MediaType.APPLICATION_JSON_VALUE,
+                                "{broken-json".getBytes(StandardCharsets.UTF_8))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("The JSON file could not be parsed"));
+
+        Integer uploadCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM upload_batch", Integer.class);
+        assertThat(uploadCount).isZero();
     }
 
     private long uploadCsv() throws Exception {

@@ -18,6 +18,11 @@ export interface UploadResponse {
   uploadedAt: string;
 }
 
+export interface UploadSourcesResponse {
+  csv: UploadResponse;
+  json: UploadResponse;
+}
+
 export interface ProcessingRunRequest {
   csvBatchId: number;
   jsonBatchId: number;
