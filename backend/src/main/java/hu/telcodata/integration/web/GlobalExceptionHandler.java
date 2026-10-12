@@ -22,11 +22,13 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
@@ -135,11 +137,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponseDto> handleUnexpected(Exception exception,
                                                              HttpServletRequest request) {
+        log.error("Unhandled server exception: method={}, uri={}", request.getMethod(), request.getRequestURI(), exception);
         return response(HttpStatus.INTERNAL_SERVER_ERROR, MessageConstants.UNEXPECTED_SERVER_ERROR, request);
     }
 
     private ResponseEntity<ApiErrorResponseDto> response(HttpStatus status, String message,
                                                       HttpServletRequest request) {
+        if (status.is4xxClientError()) {
+            log.warn("Client or business error response: method={}, uri={}, status={}, message={}",
+                    request.getMethod(), request.getRequestURI(), status.value(), message);
+        }
         return ResponseEntity.status(status).body(new ApiErrorResponseDto(
                 Instant.now(), status.value(), status.getReasonPhrase(), message, request.getRequestURI()));
     }

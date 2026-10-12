@@ -10,6 +10,26 @@ Full-stack referencia-implementáció két eltérő termékadatforrás feltölt�
 - Tesztelés: JUnit 5, Spring Boot Test, Playwright
 - Minőségellenőrzés: JaCoCo
 
+### Backend logging stratégia
+
+A backend SLF4J/Logback alapú naplózást használ. Az alkalmazás kritikus pontjai az alábbiak
+szerint naplóznak:
+
+- `INFO`: feltöltés indítása és befejezése, batch-azonosítók, feldolgozás indítása és eredménye,
+  valamint terméklekérdezések lapozási és szűrési paraméterei.
+- `WARN`: kliens- vagy üzleti hiba, illetve olyan sikeres feldolgozás, amely hibás rekordokat is tartalmaz.
+- `ERROR`: nem kezelt szerverhiba; a stack trace is bekerül a logba.
+
+Minden kérés `X-Correlation-Id` azonosítót kap (vagy a kliens által küldött értéket használja),
+amely a válasz fejlécében és minden kapcsolódó logbejegyzésben megjelenik. Fájlok tartalma és
+érzékeny adat nem kerül naplózásra.
+
+Az aktív logfájl postfix nélküli:
+`logs/telco-data-integration.log`. Naponta új archívum indul, napon belül pedig 20 MB után
+új fájl készül, például `telco-data-integration.2026-10-12_001.log` és
+`telco-data-integration.2026-10-12_002.log`. Az archívumok 30 napig, legfeljebb 2 GB összméretig
+maradnak meg. A `LOG_PATH` környezeti változóval a log könyvtára módosítható.
+
 ## Futtatás
 
 ### Docker Compose

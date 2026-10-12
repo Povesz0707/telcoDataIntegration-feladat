@@ -13,6 +13,7 @@ import hu.telcodata.integration.repository.NormalizedProductRepository;
 import hu.telcodata.integration.repository.NormalizedProductSpecifications;
 import hu.telcodata.integration.repository.ProcessingRunRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductService {
 
     private final NormalizedProductRepository productRepository;
@@ -35,6 +37,8 @@ public class ProductService {
     @Transactional(readOnly = true)
     public List<ProductResponseDto> findProducts(Long runId, String filter, String sort, boolean onlyValid) {
         Long effectiveRunId = runId == null ? latestRunId() : runId;
+        log.info("Product list requested: runId={}, effectiveRunId={}, filterPresent={}, sort={}, onlyValid={}",
+                runId, effectiveRunId, filter != null && !filter.isBlank(), sort, onlyValid);
         List<NormalizedProduct> products = productRepository.findAllByProcessingRunId(effectiveRunId);
         String normalizedFilter = filter == null ? "" : filter.trim().toLowerCase(Locale.ROOT);
 
@@ -55,6 +59,8 @@ public class ProductService {
                                                     int page, int size, String sort) {
         validatePageRequest(page, size);
         Long effectiveRunId = runId == null ? latestRunId() : runId;
+        log.info("Product page requested: runId={}, effectiveRunId={}, page={}, size={}, filterPresent={}, sort={}, onlyValid={}",
+                runId, effectiveRunId, page, size, filter != null && !filter.isBlank(), sort, onlyValid);
         Page<NormalizedProduct> products = productRepository.findAll(
                 NormalizedProductSpecifications.byQuery(effectiveRunId, filter, sku, name, manufacturer,
                         finalPriceHuf, stock, ean, source, valid, onlyValid),

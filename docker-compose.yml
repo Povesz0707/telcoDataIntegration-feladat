@@ -26,8 +26,11 @@ services:
       SPRING_DATASOURCE_USERNAME: telco
       SPRING_DATASOURCE_PASSWORD: telco
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      LOG_PATH: /app/logs
     ports:
       - "8080:8080"
+    volumes:
+      - ./logs/backend:/app/logs
     depends_on:
       postgres:
         condition: service_healthy

@@ -19,6 +19,7 @@ import hu.telcodata.integration.repository.UploadBatchRepository;
 import hu.telcodata.integration.source.CsvProductInputDto;
 import hu.telcodata.integration.source.JsonProductInputDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +39,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UploadService {
 
     private final ObjectMapper objectMapper;
@@ -48,6 +50,9 @@ public class UploadService {
 
     @Transactional
     public UploadSourcesResponseDto uploadSources(MultipartFile csvFile, MultipartFile jsonFile) {
+        log.info("Source upload started: csvFile={}, jsonFile={}",
+                csvFile == null ? null : csvFile.getOriginalFilename(),
+                jsonFile == null ? null : jsonFile.getOriginalFilename());
         byte[] csvContent = readContent(csvFile);
         List<CsvProductInputDto> csvInputs = parseCsv(csvContent);
         byte[] jsonContent = readContent(jsonFile);
@@ -55,21 +60,29 @@ public class UploadService {
 
         UploadBatch csvBatch = storeCsv(csvFile, csvContent, csvInputs);
         UploadBatch jsonBatch = storeJson(jsonFile, jsonContent, jsonInputs);
+        log.info("Source upload completed: csvBatchId={}, csvRows={}, jsonBatchId={}, jsonRows={}",
+                csvBatch.getId(), csvInputs.size(), jsonBatch.getId(), jsonInputs.size());
         return new UploadSourcesResponseDto(toResponse(csvBatch), toResponse(jsonBatch));
     }
 
     @Transactional
     public UploadResponseDto uploadCsv(MultipartFile file) {
+        log.info("CSV upload started: file={}", file == null ? null : file.getOriginalFilename());
         byte[] content = readContent(file);
         List<CsvProductInputDto> inputs = parseCsv(content);
-        return toResponse(storeCsv(file, content, inputs));
+        UploadBatch batch = storeCsv(file, content, inputs);
+        log.info("CSV upload completed: batchId={}, rows={}", batch.getId(), inputs.size());
+        return toResponse(batch);
     }
 
     @Transactional
     public UploadResponseDto uploadJson(MultipartFile file) {
+        log.info("JSON upload started: file={}", file == null ? null : file.getOriginalFilename());
         byte[] content = readContent(file);
         List<JsonProductInputDto> inputs = parseJson(content);
-        return toResponse(storeJson(file, content, inputs));
+        UploadBatch batch = storeJson(file, content, inputs);
+        log.info("JSON upload completed: batchId={}, rows={}", batch.getId(), inputs.size());
+        return toResponse(batch);
     }
 
     private UploadBatch storeCsv(MultipartFile file, byte[] content, List<CsvProductInputDto> inputs) {

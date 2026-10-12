@@ -19,6 +19,7 @@ import hu.telcodata.integration.repository.JsonProductSourceRepository;
 import hu.telcodata.integration.repository.ProcessingRunRepository;
 import hu.telcodata.integration.repository.UploadBatchRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProcessingService {
 
     private final UploadBatchRepository uploadBatchRepository;
@@ -36,6 +38,8 @@ public class ProcessingService {
 
     @Transactional
     public ProcessingRunResponseDto process(ProcessingRunRequestDto request) {
+        log.info("Processing started: csvBatchId={}, jsonBatchId={}, primarySource={}, fallbackMissingValues={}",
+                request.csvBatchId(), request.jsonBatchId(), request.primarySource(), request.fallbackMissingValues());
         UploadBatch csvBatch = getBatch(request.csvBatchId(), SourceType.CSV);
         UploadBatch jsonBatch = getBatch(request.jsonBatchId(), SourceType.JSON);
 
@@ -54,6 +58,14 @@ public class ProcessingService {
         int validCount = (int) products.stream().filter(NormalizedProduct::isValid).count();
         run.complete(validCount, products.size() - validCount);
         processingRunRepository.save(run);
+        int invalidCount = products.size() - validCount;
+        if (invalidCount > 0) {
+            log.warn("Processing completed with invalid products: runId={}, totalCount={}, validCount={}, invalidCount={}",
+                    run.getId(), products.size(), validCount, invalidCount);
+        } else {
+            log.info("Processing completed: runId={}, totalCount={}, validCount={}",
+                    run.getId(), products.size(), validCount);
+        }
         return toResponse(run);
     }
 
