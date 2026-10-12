@@ -1,9 +1,28 @@
-import { expect, test } from '@playwright/test';
+import { APIRequestContext, expect, test } from '@playwright/test';
+
+async function waitForBackend(request: APIRequestContext): Promise<void> {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      const response = await request.get('/api/processing-runs');
+      if (response.ok()) {
+        return;
+      }
+    } catch {
+      // The isolated E2E backend can still be starting up.
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 1_000));
+  }
+
+  throw new Error('The isolated E2E backend did not become ready in time.');
+}
 
 test.describe('normalizált termékek felület', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeAll(async ({ request }) => {
+    await waitForBackend(request);
+
     const csv = [
       'sku,product_name,gross_price_huf,stock_qty,brand',
       'P-9001,Playwright Widget,12700,10,ACME',
@@ -46,34 +65,28 @@ test.describe('normalizált termékek felület', () => {
       }
     ]);
 
-    const csvUpload = await request.post('/api/uploads/csv', {
+    const sourceUpload = await request.post('/api/uploads/sources', {
       multipart: {
-        file: {
+        csvFile: {
           name: 'playwright.csv',
           mimeType: 'text/csv',
           buffer: Buffer.from(csv)
-        }
-      }
-    });
-    expect(csvUpload.ok()).toBeTruthy();
-
-    const jsonUpload = await request.post('/api/uploads/json', {
-      multipart: {
-        file: {
+        },
+        jsonFile: {
           name: 'playwright.json',
           mimeType: 'application/json',
           buffer: Buffer.from(json)
         }
       }
     });
-    expect(jsonUpload.ok()).toBeTruthy();
+    const sourceUploadBody = await sourceUpload.text();
+    expect(sourceUpload.ok(), `Source upload failed with ${sourceUpload.status()}: ${sourceUploadBody}`).toBeTruthy();
 
-    const csvBatch = await csvUpload.json();
-    const jsonBatch = await jsonUpload.json();
+    const uploadedSources = JSON.parse(sourceUploadBody);
     const processing = await request.post('/api/processing-runs', {
       data: {
-        csvBatchId: csvBatch.batchId,
-        jsonBatchId: jsonBatch.batchId,
+        csvBatchId: uploadedSources.csv.batchId,
+        jsonBatchId: uploadedSources.json.batchId,
         primarySource: 'JSON',
         fallbackMissingValues: true
       }

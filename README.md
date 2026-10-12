@@ -95,15 +95,26 @@ valamint a hibás forráshoz tartozó batch elutasítását.
 
 ### Playwright felületi tesztek
 
-A Playwright tesztek futtatásához a PostgreSQL, backend és frontend szolgáltatásoknak futniuk kell:
+A Playwright tesztek nem a fejlesztési `telco` adatbázist használják. A tesztekhez külön
+`telco_e2e` PostgreSQL adatbázis és külön backend példány indul; a fejlesztési backend és adatbázis
+így változatlan marad. A frontend külön Angular fejlesztői szerverként indul a `4201`-es porton,
+és az E2E backendhez proxyz:
 
 ```text
-docker compose up -d --build
+docker compose -f docker-compose.e2e.yml up -d --build
 cd frontend
 npm ci
 npx playwright install chromium
 npm run e2e
+cd ..
+docker compose -f docker-compose.e2e.yml down -v
 ```
+
+Az izolált E2E infrastruktúra portjai: frontend `http://localhost:4201`, backend
+`http://localhost:8081`, PostgreSQL `localhost:5433`. A `down -v` parancs az E2E adatbázis
+konténerét és volume-ját is eltávolítja,
+ezért a következő futás mindig üres, tesztcélú adatbázisból indul. A fejlesztési stack közben
+futhat a `docker-compose.yml` alapján.
 
 A felületi tesztek lefedik a legutóbbi feldolgozás betöltését, a szűrést és üres eredményt,
 az issue dialogot, a feldolgozások accordioni működését, a hibás fájltípust és az API-hiba megjelenítését.
