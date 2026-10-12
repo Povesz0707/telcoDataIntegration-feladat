@@ -4,6 +4,8 @@ import hu.telcodata.integration.domain.CsvProductSource;
 import hu.telcodata.integration.constant.MessageConstants;
 import hu.telcodata.integration.domain.enums.IssueSeverity;
 import hu.telcodata.integration.domain.enums.IssueCode;
+import hu.telcodata.integration.domain.enums.ProductField;
+import hu.telcodata.integration.domain.enums.ProductSource;
 import hu.telcodata.integration.domain.JsonProductSource;
 import hu.telcodata.integration.domain.NormalizedProduct;
 import hu.telcodata.integration.domain.enums.SourceType;
@@ -59,27 +61,27 @@ public class ProductMergeService {
 
         ProductMergeValues values = resolveValues(primaryCandidate, secondaryCandidate,
                 fallbackMissingValues || primaryCandidate == null);
-        String source = primaryCandidate != null && secondaryCandidate != null
-                ? "CSV+JSON"
-                : base == null ? primarySource.name() : base.sourceType().name();
+        ProductSource source = primaryCandidate != null && secondaryCandidate != null
+                ? ProductSource.CSV_JSON
+                : base == null ? productSource(primarySource) : productSource(base.sourceType());
 
         NormalizedProduct product = new NormalizedProduct(
                 displaySku(base), values.name(), values.manufacturer(), values.finalPriceHuf(),
-                values.stock(), values.ean(), values.updatedAt(), source, primarySource.name());
+                values.stock(), values.ean(), values.updatedAt(), source, primarySource);
 
         if (base == null || isBlank(base.rawSku())) {
-            product.addIssue(IssueCode.MISSING_SKU, ProductFieldNames.SKU,
+            product.addIssue(IssueCode.MISSING_SKU, ProductField.SKU,
                     MessageConstants.MISSING_SKU, IssueSeverity.ERROR);
         }
         if (primary.size() > 1) {
-            product.addIssue(IssueCode.DUPLICATE_PRIMARY_SOURCE, ProductFieldNames.SKU,
+            product.addIssue(IssueCode.DUPLICATE_PRIMARY_SOURCE, ProductField.SKU,
                     MessageConstants.DUPLICATE_PRIMARY_SOURCE, IssueSeverity.ERROR);
         } else if (secondary.size() > 1) {
-            product.addIssue(IssueCode.DUPLICATE_SECONDARY_SOURCE, ProductFieldNames.SKU,
+            product.addIssue(IssueCode.DUPLICATE_SECONDARY_SOURCE, ProductField.SKU,
                     MessageConstants.DUPLICATE_SECONDARY_SOURCE, IssueSeverity.WARNING);
         }
         if (primaryCandidate == null || secondaryCandidate == null) {
-            product.addIssue(IssueCode.SOURCE_ONLY_RECORD, ProductFieldNames.SOURCE,
+            product.addIssue(IssueCode.SOURCE_ONLY_RECORD, ProductField.SOURCE,
                     MessageConstants.SOURCE_ONLY_RECORD, IssueSeverity.WARNING);
         }
         addSourceDataIssue(product, base);
@@ -118,18 +120,18 @@ public class ProductMergeService {
         if (!fallbackEnabled || primary == null || secondary == null) {
             return;
         }
-        addFallbackIfUsed(product, ProductFieldNames.NAME, primary.name(), secondary.name(), values.name());
-        addFallbackIfUsed(product, ProductFieldNames.MANUFACTURER,
+        addFallbackIfUsed(product, ProductField.NAME, primary.name(), secondary.name(), values.name());
+        addFallbackIfUsed(product, ProductField.MANUFACTURER,
                 primary.manufacturer(), secondary.manufacturer(), values.manufacturer());
-        addFallbackIfUsed(product, ProductFieldNames.FINAL_PRICE_HUF,
+        addFallbackIfUsed(product, ProductField.FINAL_PRICE_HUF,
                 primary.finalPriceHuf(), secondary.finalPriceHuf(), values.finalPriceHuf());
-        addFallbackIfUsed(product, ProductFieldNames.STOCK, primary.stock(), secondary.stock(), values.stock());
-        addFallbackIfUsed(product, ProductFieldNames.EAN, primary.ean(), secondary.ean(), values.ean());
-        addFallbackIfUsed(product, ProductFieldNames.UPDATED_AT,
+        addFallbackIfUsed(product, ProductField.STOCK, primary.stock(), secondary.stock(), values.stock());
+        addFallbackIfUsed(product, ProductField.EAN, primary.ean(), secondary.ean(), values.ean());
+        addFallbackIfUsed(product, ProductField.UPDATED_AT,
                 primary.updatedAt(), secondary.updatedAt(), values.updatedAt());
     }
 
-    private void addFallbackIfUsed(NormalizedProduct product, String field, Object primary,
+    private void addFallbackIfUsed(NormalizedProduct product, ProductField field, Object primary,
                                    Object secondary, Object resolved) {
         if (!hasValue(primary) && hasValue(secondary) && Objects.equals(resolved, secondary)) {
             product.addIssue(IssueCode.FALLBACK_VALUE_USED, field,
@@ -142,17 +144,17 @@ public class ProductMergeService {
         if (primary == null || secondary == null) {
             return;
         }
-        addConflict(product, ProductFieldNames.FINAL_PRICE_HUF, primary.finalPriceHuf(), secondary.finalPriceHuf());
-        addConflict(product, ProductFieldNames.STOCK, primary.stock(), secondary.stock());
-        addConflict(product, ProductFieldNames.EAN, primary.ean(), secondary.ean());
+        addConflict(product, ProductField.FINAL_PRICE_HUF, primary.finalPriceHuf(), secondary.finalPriceHuf());
+        addConflict(product, ProductField.STOCK, primary.stock(), secondary.stock());
+        addConflict(product, ProductField.EAN, primary.ean(), secondary.ean());
         if (!isBlank(primary.manufacturer()) && !isBlank(secondary.manufacturer())
                 && !skuNormalizer.normalizeManufacturer(primary.manufacturer())
                 .equals(skuNormalizer.normalizeManufacturer(secondary.manufacturer()))) {
-            addConflict(product, ProductFieldNames.MANUFACTURER, primary.manufacturer(), secondary.manufacturer());
+            addConflict(product, ProductField.MANUFACTURER, primary.manufacturer(), secondary.manufacturer());
         }
     }
 
-    private void addConflict(NormalizedProduct product, String field, Object primary, Object secondary) {
+    private void addConflict(NormalizedProduct product, ProductField field, Object primary, Object secondary) {
         if (hasValue(primary) && hasValue(secondary) && !Objects.equals(primary, secondary)) {
             if (primary instanceof BigDecimal primaryDecimal && secondary instanceof BigDecimal secondaryDecimal
                     && primaryDecimal.compareTo(secondaryDecimal) == 0) {
@@ -164,13 +166,13 @@ public class ProductMergeService {
     }
 
     private void addRequiredFieldIssues(NormalizedProduct product, ProductMergeValues values) {
-        addRequired(product, ProductFieldNames.NAME, values.name());
-        addRequired(product, ProductFieldNames.MANUFACTURER, values.manufacturer());
-        addRequired(product, ProductFieldNames.FINAL_PRICE_HUF, values.finalPriceHuf());
-        addRequired(product, ProductFieldNames.STOCK, values.stock());
+        addRequired(product, ProductField.NAME, values.name());
+        addRequired(product, ProductField.MANUFACTURER, values.manufacturer());
+        addRequired(product, ProductField.FINAL_PRICE_HUF, values.finalPriceHuf());
+        addRequired(product, ProductField.STOCK, values.stock());
     }
 
-    private void addRequired(NormalizedProduct product, String field, Object value) {
+    private void addRequired(NormalizedProduct product, ProductField field, Object value) {
         if (!hasValue(value)) {
             product.addIssue(IssueCode.MISSING_REQUIRED_FIELD, field,
                     MessageConstants.MISSING_REQUIRED_FIELD, IssueSeverity.ERROR);
@@ -179,13 +181,17 @@ public class ProductMergeService {
 
     private void addSourceDataIssue(NormalizedProduct product, SourceCandidate candidate) {
         if (candidate != null && candidate.sourceDataIssue() != null) {
-            product.addIssue(candidate.sourceDataIssue(), ProductFieldNames.FINAL_PRICE_HUF,
+            product.addIssue(candidate.sourceDataIssue(), ProductField.FINAL_PRICE_HUF,
                     MessageConstants.SOURCE_VALUE_CONVERSION_ERROR, IssueSeverity.ERROR);
         }
     }
 
     private String displaySku(SourceCandidate base) {
         return base == null || isBlank(base.rawSku()) ? null : base.rawSku().trim();
+    }
+
+    private ProductSource productSource(SourceType sourceType) {
+        return sourceType == SourceType.CSV ? ProductSource.CSV : ProductSource.JSON;
     }
 
     private Map<String, List<SourceCandidate>> groupCsv(List<CsvProductSource> records) {

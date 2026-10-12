@@ -4,6 +4,8 @@ import hu.telcodata.integration.api.ProductResponseDto;
 import hu.telcodata.integration.domain.NormalizedProduct;
 import hu.telcodata.integration.domain.ProcessingRun;
 import hu.telcodata.integration.domain.enums.ProcessingStatus;
+import hu.telcodata.integration.domain.enums.ProductSource;
+import hu.telcodata.integration.domain.enums.SourceType;
 import hu.telcodata.integration.exception.BadRequestException;
 import hu.telcodata.integration.exception.ResourceNotFoundException;
 import hu.telcodata.integration.mapper.ProductMapper;
@@ -122,7 +124,7 @@ class ProductServiceTest {
                                       int stock, boolean valid) {
         NormalizedProduct product = new NormalizedProduct(sku, name, manufacturer,
                 BigDecimal.valueOf(price), stock, "EAN-" + sku, Instant.parse("2026-01-01T00:00:00Z"),
-                "CSV", "CSV");
+                ProductSource.CSV, SourceType.CSV);
         product.markValid(valid);
         return product;
     }

@@ -4,6 +4,7 @@ import hu.telcodata.integration.domain.CsvProductSource;
 import hu.telcodata.integration.domain.JsonProductSource;
 import hu.telcodata.integration.domain.enums.IssueCode;
 import hu.telcodata.integration.domain.enums.IssueSeverity;
+import hu.telcodata.integration.domain.enums.ProductField;
 import hu.telcodata.integration.domain.NormalizedProduct;
 import hu.telcodata.integration.domain.enums.SourceType;
 import hu.telcodata.integration.domain.UploadBatch;
@@ -63,7 +64,7 @@ class ProductMergeServiceTest {
         assertThat(product.isValid()).isFalse();
         assertThat(product.getIssues())
                 .anyMatch(issue -> issue.getCode() == IssueCode.MISSING_REQUIRED_FIELD
-                        && ProductFieldNames.STOCK.equals(issue.getField())
+                        && ProductField.STOCK == issue.getField()
                         && issue.getSeverity() == IssueSeverity.ERROR);
     }
 
@@ -96,7 +97,7 @@ class ProductMergeServiceTest {
         assertThat(product.isValid()).isFalse();
         assertThat(product.getIssues())
                 .anyMatch(issue -> issue.getCode() == IssueCode.MISSING_REQUIRED_FIELD
-                        && ProductFieldNames.STOCK.equals(issue.getField())
+                        && ProductField.STOCK == issue.getField()
                         && issue.getSeverity() == IssueSeverity.ERROR);
         assertThat(product.getIssues()).noneMatch(issue -> issue.getCode() == IssueCode.FALLBACK_VALUE_USED);
     }
@@ -113,7 +114,7 @@ class ProductMergeServiceTest {
         assertThat(product.isValid()).isTrue();
         assertThat(product.getIssues())
                 .anyMatch(issue -> issue.getCode() == IssueCode.SOURCE_CONFLICT
-                        && ProductFieldNames.STOCK.equals(issue.getField())
+                        && ProductField.STOCK == issue.getField()
                         && issue.getSeverity() == IssueSeverity.WARNING);
     }
 

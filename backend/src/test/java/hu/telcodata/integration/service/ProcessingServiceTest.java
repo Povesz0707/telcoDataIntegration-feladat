@@ -5,6 +5,7 @@ import hu.telcodata.integration.api.ProcessingRunResponseDto;
 import hu.telcodata.integration.domain.NormalizedProduct;
 import hu.telcodata.integration.domain.ProcessingRun;
 import hu.telcodata.integration.domain.enums.ProcessingStatus;
+import hu.telcodata.integration.domain.enums.ProductSource;
 import hu.telcodata.integration.domain.enums.SourceType;
 import hu.telcodata.integration.domain.UploadBatch;
 import hu.telcodata.integration.domain.enums.UploadStatus;
@@ -199,7 +200,7 @@ class ProcessingServiceTest {
 
     private NormalizedProduct product(String sku, boolean valid) {
         NormalizedProduct product = new NormalizedProduct(sku, "Product", "ACME",
-                BigDecimal.valueOf(100), 1, "EAN-1", Instant.now(), "CSV", "CSV");
+                BigDecimal.valueOf(100), 1, "EAN-1", Instant.now(), ProductSource.CSV, SourceType.CSV);
         product.markValid(valid);
         return product;
     }

@@ -2,8 +2,15 @@ package hu.telcodata.integration.domain;
 
 import hu.telcodata.integration.domain.enums.IssueCode;
 import hu.telcodata.integration.domain.enums.IssueSeverity;
+import hu.telcodata.integration.domain.enums.ProductField;
+import hu.telcodata.integration.domain.enums.ProductSource;
+import hu.telcodata.integration.domain.enums.SourceType;
+import hu.telcodata.integration.domain.converter.ProductSourceConverter;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,16 +48,19 @@ public class NormalizedProduct {
     private Integer stock;
     private String ean;
     private Instant updatedAt;
-    private String source;
-    private String primarySource;
+    @Convert(converter = ProductSourceConverter.class)
+    private ProductSource source;
+
+    @Enumerated(EnumType.STRING)
+    private SourceType primarySource;
     private boolean valid;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NormalizedProductIssue> issues = new ArrayList<>();
 
     public NormalizedProduct(String sku, String name, String manufacturer, BigDecimal finalPriceHuf,
-                             Integer stock, String ean, Instant updatedAt, String source,
-                             String primarySource) {
+                             Integer stock, String ean, Instant updatedAt, ProductSource source,
+                             SourceType primarySource) {
         this.sku = sku;
         this.name = name;
         this.manufacturer = manufacturer;
@@ -66,7 +76,7 @@ public class NormalizedProduct {
         this.processingRun = processingRun;
     }
 
-    public void addIssue(IssueCode code, String field, String message, IssueSeverity severity) {
+    public void addIssue(IssueCode code, ProductField field, String message, IssueSeverity severity) {
         issues.add(new NormalizedProductIssue(this, code, field, message, severity));
     }
 

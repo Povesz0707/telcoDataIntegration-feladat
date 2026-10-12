@@ -2,7 +2,10 @@ package hu.telcodata.integration.domain;
 
 import hu.telcodata.integration.domain.enums.IssueCode;
 import hu.telcodata.integration.domain.enums.IssueSeverity;
+import hu.telcodata.integration.domain.enums.ProductField;
+import hu.telcodata.integration.domain.converter.ProductFieldConverter;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Convert;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -31,13 +34,14 @@ public class NormalizedProductIssue {
 
     @Enumerated(EnumType.STRING)
     private IssueCode code;
-    private String field;
+    @Convert(converter = ProductFieldConverter.class)
+    private ProductField field;
     private String message;
 
     @Enumerated(EnumType.STRING)
     private IssueSeverity severity;
 
-    public NormalizedProductIssue(NormalizedProduct product, IssueCode code, String field,
+    public NormalizedProductIssue(NormalizedProduct product, IssueCode code, ProductField field,
                                   String message, IssueSeverity severity) {
         this.product = product;
         this.code = code;

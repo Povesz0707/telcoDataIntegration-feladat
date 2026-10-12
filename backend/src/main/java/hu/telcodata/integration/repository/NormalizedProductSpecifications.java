@@ -1,7 +1,8 @@
 package hu.telcodata.integration.repository;
 
 import hu.telcodata.integration.domain.NormalizedProduct;
-import hu.telcodata.integration.normalization.ProductFieldNames;
+import hu.telcodata.integration.domain.enums.ProductField;
+import hu.telcodata.integration.domain.enums.ProductSource;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -26,18 +27,18 @@ public final class NormalizedProductSpecifications {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(builder.equal(root.get("processingRun").get("id"), runId));
             addGlobalFilter(predicates, root, builder, filter);
-            addTextFilter(predicates, root, builder, ProductFieldNames.SKU, sku);
-            addTextFilter(predicates, root, builder, ProductFieldNames.NAME, name);
-            addTextFilter(predicates, root, builder, ProductFieldNames.MANUFACTURER, manufacturer);
-            addDecimalFilter(predicates, root, builder, ProductFieldNames.FINAL_PRICE_HUF, finalPriceHuf);
-            addIntegerFilter(predicates, root, builder, ProductFieldNames.STOCK, stock);
-            addTextFilter(predicates, root, builder, ProductFieldNames.EAN, ean);
-            addExactTextFilter(predicates, root, builder, ProductFieldNames.SOURCE, source);
+            addTextFilter(predicates, root, builder, ProductField.SKU, sku);
+            addTextFilter(predicates, root, builder, ProductField.NAME, name);
+            addTextFilter(predicates, root, builder, ProductField.MANUFACTURER, manufacturer);
+            addDecimalFilter(predicates, root, builder, ProductField.FINAL_PRICE_HUF, finalPriceHuf);
+            addIntegerFilter(predicates, root, builder, ProductField.STOCK, stock);
+            addTextFilter(predicates, root, builder, ProductField.EAN, ean);
+            addSourceFilter(predicates, root, builder, source);
             if (valid != null) {
-                predicates.add(builder.equal(root.get(ProductFieldNames.VALID), valid));
+                predicates.add(builder.equal(root.get(ProductField.VALID.propertyName()), valid));
             }
             if (onlyValid) {
-                predicates.add(builder.isTrue(root.get(ProductFieldNames.VALID)));
+                predicates.add(builder.isTrue(root.get(ProductField.VALID.propertyName())));
             }
             return builder.and(predicates.toArray(Predicate[]::new));
         };
@@ -51,68 +52,70 @@ public final class NormalizedProductSpecifications {
         }
         String pattern = containsPattern(normalizedFilter);
         predicates.add(builder.or(
-                contains(builder, root.get(ProductFieldNames.SKU), pattern),
-                contains(builder, root.get(ProductFieldNames.NAME), pattern),
-                contains(builder, root.get(ProductFieldNames.MANUFACTURER), pattern),
-                contains(builder, root.get(ProductFieldNames.EAN), pattern)));
+                contains(builder, root.get(ProductField.SKU.propertyName()), pattern),
+                contains(builder, root.get(ProductField.NAME.propertyName()), pattern),
+                contains(builder, root.get(ProductField.MANUFACTURER.propertyName()), pattern),
+                contains(builder, root.get(ProductField.EAN.propertyName()), pattern)));
     }
 
     private static void addTextFilter(List<Predicate> predicates, Root<NormalizedProduct> root,
-                                      CriteriaBuilder builder, String field, String filter) {
+                                      CriteriaBuilder builder, ProductField field, String filter) {
         String normalizedFilter = normalize(filter);
+        String propertyName = field.propertyName();
         if (normalizedFilter.isBlank()) {
             return;
         }
         if (isNotAvailable(normalizedFilter)) {
-            predicates.add(builder.isNull(root.get(field)));
+            predicates.add(builder.isNull(root.get(propertyName)));
             return;
         }
-        predicates.add(contains(builder, root.get(field), containsPattern(normalizedFilter)));
+        predicates.add(contains(builder, root.get(propertyName), containsPattern(normalizedFilter)));
     }
 
-    private static void addExactTextFilter(List<Predicate> predicates, Root<NormalizedProduct> root,
-                                           CriteriaBuilder builder, String field, String filter) {
+    private static void addSourceFilter(List<Predicate> predicates, Root<NormalizedProduct> root,
+                                        CriteriaBuilder builder, String filter) {
         String normalizedFilter = normalize(filter);
         if (normalizedFilter.isBlank()) {
             return;
         }
-        if (isNotAvailable(normalizedFilter)) {
-            predicates.add(builder.isNull(root.get(field)));
-            return;
-        }
-        predicates.add(builder.equal(builder.lower(root.get(field)), normalizedFilter));
+        ProductSource.findByValue(normalizedFilter)
+                .ifPresentOrElse(source -> predicates.add(
+                                builder.equal(root.get(ProductField.SOURCE.propertyName()), source)),
+                        () -> predicates.add(builder.disjunction()));
     }
 
     private static void addDecimalFilter(List<Predicate> predicates, Root<NormalizedProduct> root,
-                                         CriteriaBuilder builder, String field, String filter) {
+                                         CriteriaBuilder builder, ProductField field, String filter) {
         String normalizedFilter = normalize(filter);
+        String propertyName = field.propertyName();
         if (normalizedFilter.isBlank()) {
             return;
         }
         if (isNotAvailable(normalizedFilter)) {
-            predicates.add(builder.isNull(root.get(field)));
+            predicates.add(builder.isNull(root.get(propertyName)));
             return;
         }
         try {
             BigDecimal value = new BigDecimal(normalizedFilter.replace(" ", "").replace(',', '.'));
-            predicates.add(builder.equal(root.get(field), value));
+            predicates.add(builder.equal(root.get(propertyName), value));
         } catch (NumberFormatException exception) {
             predicates.add(builder.disjunction());
         }
     }
 
     private static void addIntegerFilter(List<Predicate> predicates, Root<NormalizedProduct> root,
-                                         CriteriaBuilder builder, String field, String filter) {
+                                         CriteriaBuilder builder, ProductField field, String filter) {
         String normalizedFilter = normalize(filter);
+        String propertyName = field.propertyName();
         if (normalizedFilter.isBlank()) {
             return;
         }
         if (isNotAvailable(normalizedFilter)) {
-            predicates.add(builder.isNull(root.get(field)));
+            predicates.add(builder.isNull(root.get(propertyName)));
             return;
         }
         try {
-            predicates.add(builder.equal(root.get(field), Integer.valueOf(normalizedFilter)));
+            predicates.add(builder.equal(root.get(propertyName), Integer.valueOf(normalizedFilter)));
         } catch (NumberFormatException exception) {
             predicates.add(builder.disjunction());
         }
