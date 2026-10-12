@@ -1,7 +1,7 @@
 package hu.telcodata.integration.api;
 
-import hu.telcodata.integration.domain.ProcessingStatus;
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.ProcessingStatus;
+import hu.telcodata.integration.domain.enums.SourceType;
 
 import java.time.Instant;
 

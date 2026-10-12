@@ -2,14 +2,12 @@ package hu.telcodata.integration.service;
 
 import hu.telcodata.integration.api.ProcessingRunRequestDto;
 import hu.telcodata.integration.api.ProcessingRunResponseDto;
-import hu.telcodata.integration.domain.CsvProductSource;
-import hu.telcodata.integration.domain.JsonProductSource;
 import hu.telcodata.integration.domain.NormalizedProduct;
 import hu.telcodata.integration.domain.ProcessingRun;
-import hu.telcodata.integration.domain.ProcessingStatus;
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.ProcessingStatus;
+import hu.telcodata.integration.domain.enums.SourceType;
 import hu.telcodata.integration.domain.UploadBatch;
-import hu.telcodata.integration.domain.UploadStatus;
+import hu.telcodata.integration.domain.enums.UploadStatus;
 import hu.telcodata.integration.exception.BadRequestException;
 import hu.telcodata.integration.exception.ResourceNotFoundException;
 import hu.telcodata.integration.normalization.ProductMergeService;

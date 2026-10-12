@@ -1,7 +1,7 @@
 package hu.telcodata.integration.repository;
 
 import hu.telcodata.integration.domain.ProcessingRun;
-import hu.telcodata.integration.domain.ProcessingStatus;
+import hu.telcodata.integration.domain.enums.ProcessingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

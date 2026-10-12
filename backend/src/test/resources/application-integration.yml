@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/telco_test}
+    username: ${TEST_DB_USERNAME:telco}
+    password: ${TEST_DB_PASSWORD:telco}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop

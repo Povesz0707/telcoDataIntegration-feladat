@@ -5,7 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hu.telcodata.integration.api.UploadResponseDto;
 import hu.telcodata.integration.domain.CsvProductSource;
 import hu.telcodata.integration.domain.JsonProductSource;
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.SourceType;
 import hu.telcodata.integration.domain.UploadBatch;
 import hu.telcodata.integration.exception.BadRequestException;
 import hu.telcodata.integration.mapper.SourceMapper;
@@ -20,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;

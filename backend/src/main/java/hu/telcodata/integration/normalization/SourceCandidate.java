@@ -1,7 +1,7 @@
 package hu.telcodata.integration.normalization;
 
-import hu.telcodata.integration.domain.IssueCode;
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.IssueCode;
+import hu.telcodata.integration.domain.enums.SourceType;
 
 import java.math.BigDecimal;
 import java.time.Instant;

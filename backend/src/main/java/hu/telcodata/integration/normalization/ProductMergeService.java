@@ -1,11 +1,12 @@
 package hu.telcodata.integration.normalization;
 
 import hu.telcodata.integration.domain.CsvProductSource;
-import hu.telcodata.integration.domain.IssueSeverity;
-import hu.telcodata.integration.domain.IssueCode;
+import hu.telcodata.integration.constant.MessageConstants;
+import hu.telcodata.integration.domain.enums.IssueSeverity;
+import hu.telcodata.integration.domain.enums.IssueCode;
 import hu.telcodata.integration.domain.JsonProductSource;
 import hu.telcodata.integration.domain.NormalizedProduct;
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.SourceType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -68,18 +69,18 @@ public class ProductMergeService {
 
         if (base == null || isBlank(base.rawSku())) {
             product.addIssue(IssueCode.MISSING_SKU, ProductFieldNames.SKU,
-                    "The source record has no SKU", IssueSeverity.ERROR);
+                    MessageConstants.MISSING_SKU, IssueSeverity.ERROR);
         }
         if (primary.size() > 1) {
             product.addIssue(IssueCode.DUPLICATE_PRIMARY_SOURCE, ProductFieldNames.SKU,
-                    "The primary source contains multiple records for the same SKU", IssueSeverity.ERROR);
+                    MessageConstants.DUPLICATE_PRIMARY_SOURCE, IssueSeverity.ERROR);
         } else if (secondary.size() > 1) {
             product.addIssue(IssueCode.DUPLICATE_SECONDARY_SOURCE, ProductFieldNames.SKU,
-                    "The secondary source contains multiple records for the same SKU", IssueSeverity.WARNING);
+                    MessageConstants.DUPLICATE_SECONDARY_SOURCE, IssueSeverity.WARNING);
         }
         if (primaryCandidate == null || secondaryCandidate == null) {
             product.addIssue(IssueCode.SOURCE_ONLY_RECORD, ProductFieldNames.SOURCE,
-                    "The record exists in only one source", IssueSeverity.WARNING);
+                    MessageConstants.SOURCE_ONLY_RECORD, IssueSeverity.WARNING);
         }
         addSourceDataIssue(product, base);
         addFallbackIssues(product, primaryCandidate, secondaryCandidate, values, fallbackMissingValues);
@@ -132,7 +133,7 @@ public class ProductMergeService {
                                    Object secondary, Object resolved) {
         if (!hasValue(primary) && hasValue(secondary) && Objects.equals(resolved, secondary)) {
             product.addIssue(IssueCode.FALLBACK_VALUE_USED, field,
-                    "The value was filled from the secondary source", IssueSeverity.WARNING);
+                    MessageConstants.FALLBACK_VALUE_USED, IssueSeverity.WARNING);
         }
     }
 
@@ -158,7 +159,7 @@ public class ProductMergeService {
                 return;
             }
             product.addIssue(IssueCode.SOURCE_CONFLICT, field,
-                    "Primary source value differs from the secondary source", IssueSeverity.WARNING);
+                    MessageConstants.SOURCE_CONFLICT, IssueSeverity.WARNING);
         }
     }
 
@@ -172,14 +173,14 @@ public class ProductMergeService {
     private void addRequired(NormalizedProduct product, String field, Object value) {
         if (!hasValue(value)) {
             product.addIssue(IssueCode.MISSING_REQUIRED_FIELD, field,
-                    "A required value is missing", IssueSeverity.ERROR);
+                    MessageConstants.MISSING_REQUIRED_FIELD, IssueSeverity.ERROR);
         }
     }
 
     private void addSourceDataIssue(NormalizedProduct product, SourceCandidate candidate) {
         if (candidate != null && candidate.sourceDataIssue() != null) {
             product.addIssue(candidate.sourceDataIssue(), ProductFieldNames.FINAL_PRICE_HUF,
-                    "The source value could not be converted to HUF", IssueSeverity.ERROR);
+                    MessageConstants.SOURCE_VALUE_CONVERSION_ERROR, IssueSeverity.ERROR);
         }
     }
 

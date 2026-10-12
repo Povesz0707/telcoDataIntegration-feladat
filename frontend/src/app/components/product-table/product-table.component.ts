@@ -1,17 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FilterService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { PRODUCT_FIELDS } from '../../constants/product-fields';
-import { IssueSeverity, Product, ProductIssue, SourceType } from '../../models/product.models';
+import { IssueSeverity, Product, ProductIssue, ProductTableQuery, SourceType } from '../../models/product.models';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
@@ -24,7 +23,6 @@ export class ProductTableComponent implements OnDestroy {
   readonly productFields = PRODUCT_FIELDS;
   private readonly filterDelayMs = 350;
   private readonly filterTimers = new Map<string, ReturnType<typeof setTimeout>>();
-  private readonly filterService = inject(FilterService);
   readonly i18n = inject(LanguageService);
   readonly issueSeverity = IssueSeverity;
   readonly sourceOptions = computed(() => [
@@ -43,11 +41,10 @@ export class ProductTableComponent implements OnDestroy {
   issuesDialogVisible = false;
   @Input({ required: true }) products: Product[] = [];
   @Input() loading = false;
-
-  constructor() {
-    this.filterService.register('displayContains', (value: unknown, filter: unknown) => this.matchesDisplayValue(value, filter));
-    this.filterService.register('displayEquals', (value: unknown, filter: unknown) => this.matchesDisplayValue(value, filter, true));
-  }
+  @Input() totalRecords = 0;
+  @Input() first = 0;
+  @Input() pageSize = 10;
+  @Output() readonly queryChanged = new EventEmitter<ProductTableQuery>();
 
   scheduleFilter(field: string, filterCallback: (value: unknown) => void, value: unknown): void {
     this.tableLoading.set(true);
@@ -67,23 +64,6 @@ export class ProductTableComponent implements OnDestroy {
     }, this.filterDelayMs);
 
     this.filterTimers.set(field, timer);
-  }
-
-  private matchesDisplayValue(value: unknown, filter: unknown, exact = false): boolean {
-    if (filter === null || filter === undefined || String(filter).trim() === '') {
-      return true;
-    }
-
-    const normalizedFilter = String(filter).trim().toLocaleLowerCase(this.i18n.locale());
-    const normalizedNotAvailable = this.i18n.t('common.notAvailable').trim().toLocaleLowerCase(this.i18n.locale());
-    const isNotAvailable = value === null || value === undefined || value === '';
-
-    if (isNotAvailable) {
-      return normalizedNotAvailable.includes(normalizedFilter);
-    }
-
-    const normalizedValue = String(value).trim().toLocaleLowerCase(this.i18n.locale());
-    return exact ? normalizedValue === normalizedFilter : normalizedValue.includes(normalizedFilter);
   }
 
   ngOnDestroy(): void {
@@ -109,15 +89,34 @@ export class ProductTableComponent implements OnDestroy {
   }
 
   issueButtonIcon(product: Product): string {
-    if (product.issues.length === 0) {
-      return 'pi pi-check';
-    }
-
     return this.hasErrors(product) ? 'pi pi-times-circle' : 'pi pi-exclamation-triangle';
   }
 
-  issueButtonSeverity(product: Product): 'danger' | 'warn' | 'secondary' {
-    return product.issues.length === 0 ? 'secondary' : (this.hasErrors(product) ? 'danger' : 'warn');
+  issueButtonSeverity(product: Product): 'danger' | 'warn' {
+    return this.hasErrors(product) ? 'danger' : 'warn';
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent): void {
+    const rows = event.rows ?? this.pageSize;
+    const filters: Record<string, string | boolean> = {};
+
+    Object.entries(event.filters ?? {}).forEach(([field, metadata]) => {
+      const filter = Array.isArray(metadata) ? metadata[0] : metadata;
+      const value = filter?.value;
+      if (value !== null && value !== undefined && value !== '') {
+        filters[field] = value;
+      }
+    });
+
+    const sortField = event.sortField ?? this.productFields.sku;
+    const sortDirection = event.sortOrder === -1 ? 'desc' : 'asc';
+    this.queryChanged.emit({
+      page: Math.floor((event.first ?? 0) / rows),
+      size: rows,
+      sort: `${sortField}:${sortDirection}`,
+      filter: typeof event.globalFilter === 'string' ? event.globalFilter : undefined,
+      filters
+    });
   }
 
   formatPrice(price: number | null): string {

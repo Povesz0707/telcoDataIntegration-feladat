@@ -14,7 +14,9 @@ import { UploadPanelComponent } from './components/upload-panel/upload-panel.com
 import {
   Product,
   ProcessSelection,
-  ProcessingRunResponse
+  ProcessingRunResponse,
+  ProductTableQuery,
+  ProductPageResponse
 } from './models/product.models';
 import { ProductApiService } from './services/product-api.service';
 import { LanguageService } from './services/language.service';
@@ -41,11 +43,15 @@ import { LanguageService } from './services/language.service';
 export class AppComponent implements OnInit {
   readonly i18n = inject(LanguageService);
   readonly products = signal<Product[]>([]);
+  readonly totalProducts = signal(0);
+  readonly productPageSize = signal(10);
+  readonly productFirst = signal(0);
   readonly processingRun = signal<ProcessingRunResponse | null>(null);
   readonly processingRuns = signal<ProcessingRunResponse[]>([]);
   readonly busy = signal(false);
   readonly errorMessage = signal<string | null>(null);
   uploadDialogVisible = false;
+  private productQuery = this.createDefaultProductQuery();
 
   constructor(private readonly api: ProductApiService) {
   }
@@ -69,13 +75,15 @@ export class AppComponent implements OnInit {
         primarySource: selection.primarySource,
         fallbackMissingValues: selection.fallbackMissingValues
       })),
-      switchMap(run => this.api.getProducts({
-        runId: run.runId
-      }).pipe(map(products => ({ run, products })))),
-      tap(({ run, products }) => {
+      switchMap(run => {
+        this.productQuery = this.createDefaultProductQuery();
+        return this.api.getProductsPage({ runId: run.runId, ...this.productQuery })
+          .pipe(map(page => ({ run, page })));
+      }),
+      tap(({ run, page }) => {
         this.processingRun.set(run);
         this.processingRuns.update(runs => [run, ...runs.filter(existingRun => existingRun.runId !== run.runId)]);
-        this.products.set(products);
+        this.updateProducts(page);
         this.uploadDialogVisible = false;
       }),
       catchError(error => {
@@ -94,10 +102,11 @@ export class AppComponent implements OnInit {
 
     this.busy.set(true);
     this.errorMessage.set(null);
-    this.api.getProducts({ runId: run.runId }).pipe(
-      tap(products => {
+    this.productQuery = this.createDefaultProductQuery();
+    this.api.getProductsPage({ runId: run.runId, ...this.productQuery }).pipe(
+      tap(page => {
         this.processingRun.set(run);
-        this.products.set(products);
+        this.updateProducts(page);
       }),
       catchError(error => {
         this.errorMessage.set(this.errorMessageFrom(error));
@@ -111,12 +120,11 @@ export class AppComponent implements OnInit {
     this.busy.set(true);
     this.errorMessage.set(null);
     this.api.getLatestRun().pipe(
-      switchMap(run => this.api.getProducts({
-        runId: run.runId
-      }).pipe(map(products => ({ run, products })))),
-      tap(({ run, products }) => {
+      switchMap(run => this.api.getProductsPage({ runId: run.runId, ...this.productQuery })
+        .pipe(map(page => ({ run, page })))),
+      tap(({ run, page }) => {
         this.processingRun.set(run);
-        this.products.set(products);
+        this.updateProducts(page);
       }),
       catchError(error => {
         if (error.status !== 404) {
@@ -140,11 +148,30 @@ export class AppComponent implements OnInit {
   }
 
   validCount(): number {
-    return this.products().filter(product => product.valid).length;
+    return this.processingRun()?.validCount ?? 0;
   }
 
   invalidCount(): number {
-    return this.products().filter(product => !product.valid).length;
+    return this.processingRun()?.invalidCount ?? 0;
+  }
+
+  handleProductQuery(query: ProductTableQuery): void {
+    this.productQuery = query;
+    const run = this.processingRun();
+    if (!run || this.busy()) {
+      return;
+    }
+
+    this.busy.set(true);
+    this.errorMessage.set(null);
+    this.api.getProductsPage({ runId: run.runId, ...query }).pipe(
+      tap(page => this.updateProducts(page)),
+      catchError(error => {
+        this.errorMessage.set(this.errorMessageFrom(error));
+        return EMPTY;
+      }),
+      finalize(() => this.busy.set(false))
+    ).subscribe();
   }
 
   formatProcessingDate(value: string): string {
@@ -165,5 +192,21 @@ export class AppComponent implements OnInit {
       return this.i18n.t('errors.server');
     }
     return this.i18n.t('errors.generic');
+  }
+
+  private updateProducts(page: ProductPageResponse): void {
+    this.products.set(page.content);
+    this.totalProducts.set(page.totalElements);
+    this.productPageSize.set(page.size);
+    this.productFirst.set(page.page * page.size);
+  }
+
+  private createDefaultProductQuery(): ProductTableQuery {
+    return {
+      page: 0,
+      size: 10,
+      sort: 'sku:asc',
+      filters: {}
+    };
   }
 }

@@ -2,14 +2,15 @@ package hu.telcodata.integration.service;
 
 import hu.telcodata.integration.api.ProcessingRunRequestDto;
 import hu.telcodata.integration.api.ProcessingRunResponseDto;
+import hu.telcodata.integration.constant.MessageConstants;
 import hu.telcodata.integration.domain.CsvProductSource;
 import hu.telcodata.integration.domain.JsonProductSource;
 import hu.telcodata.integration.domain.NormalizedProduct;
 import hu.telcodata.integration.domain.ProcessingRun;
-import hu.telcodata.integration.domain.ProcessingStatus;
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.ProcessingStatus;
+import hu.telcodata.integration.domain.enums.SourceType;
 import hu.telcodata.integration.domain.UploadBatch;
-import hu.telcodata.integration.domain.UploadStatus;
+import hu.telcodata.integration.domain.enums.UploadStatus;
 import hu.telcodata.integration.exception.BadRequestException;
 import hu.telcodata.integration.exception.ResourceNotFoundException;
 import hu.telcodata.integration.normalization.ProductMergeService;
@@ -59,14 +60,14 @@ public class ProcessingService {
     @Transactional(readOnly = true)
     public ProcessingRunResponseDto getRun(Long runId) {
         return toResponse(processingRunRepository.findById(runId)
-                .orElseThrow(() -> new ResourceNotFoundException("Processing run not found: " + runId)));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstants.processingRunNotFound(runId))));
     }
 
     @Transactional(readOnly = true)
     public ProcessingRunResponseDto getLatestCompletedRun() {
         return processingRunRepository.findTopByStatusOrderByStartedAtDesc(ProcessingStatus.COMPLETED)
                 .map(this::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("No completed processing run exists"));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstants.NO_COMPLETED_PROCESSING_RUN));
     }
 
     @Transactional(readOnly = true)
@@ -79,12 +80,12 @@ public class ProcessingService {
 
     private UploadBatch getBatch(Long id, SourceType expectedType) {
         UploadBatch batch = uploadBatchRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Upload batch not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstants.uploadBatchNotFound(id)));
         if (batch.getSourceType() != expectedType) {
-            throw new BadRequestException("Batch " + id + " is not a " + expectedType + " batch");
+            throw new BadRequestException(MessageConstants.batchWrongSource(id, expectedType));
         }
         if (batch.getStatus() != UploadStatus.COMPLETED) {
-            throw new BadRequestException("Batch " + id + " is not ready for processing");
+            throw new BadRequestException(MessageConstants.BATCH_NOT_READY.formatted(id));
         }
         return batch;
     }

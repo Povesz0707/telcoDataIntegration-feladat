@@ -1,5 +1,7 @@
 package hu.telcodata.integration.domain;
 
+import hu.telcodata.integration.domain.enums.SourceType;
+import hu.telcodata.integration.domain.enums.UploadStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

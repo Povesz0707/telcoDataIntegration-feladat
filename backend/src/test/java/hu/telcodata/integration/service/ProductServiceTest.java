@@ -3,7 +3,7 @@ package hu.telcodata.integration.service;
 import hu.telcodata.integration.api.ProductResponseDto;
 import hu.telcodata.integration.domain.NormalizedProduct;
 import hu.telcodata.integration.domain.ProcessingRun;
-import hu.telcodata.integration.domain.ProcessingStatus;
+import hu.telcodata.integration.domain.enums.ProcessingStatus;
 import hu.telcodata.integration.exception.BadRequestException;
 import hu.telcodata.integration.exception.ResourceNotFoundException;
 import hu.telcodata.integration.mapper.ProductMapper;

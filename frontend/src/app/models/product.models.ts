@@ -60,6 +60,22 @@ export interface Product {
   issues: ProductIssue[];
 }
 
+export interface ProductPageResponse {
+  content: Product[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface ProductTableQuery {
+  page: number;
+  size: number;
+  sort: string;
+  filter?: string;
+  filters: Record<string, string | boolean>;
+}
+
 export interface ProcessSelection {
   csvFile: File;
   jsonFile: File;

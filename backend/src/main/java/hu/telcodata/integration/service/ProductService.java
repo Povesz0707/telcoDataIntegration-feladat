@@ -1,17 +1,23 @@
 package hu.telcodata.integration.service;
 
 import hu.telcodata.integration.api.ProductResponseDto;
+import hu.telcodata.integration.api.ProductPageResponseDto;
+import hu.telcodata.integration.constant.MessageConstants;
 import hu.telcodata.integration.domain.NormalizedProduct;
-import hu.telcodata.integration.domain.ProcessingStatus;
+import hu.telcodata.integration.domain.enums.ProcessingStatus;
 import hu.telcodata.integration.exception.BadRequestException;
 import hu.telcodata.integration.exception.ResourceNotFoundException;
 import hu.telcodata.integration.mapper.ProductMapper;
 import hu.telcodata.integration.normalization.ProductFieldNames;
 import hu.telcodata.integration.repository.NormalizedProductRepository;
+import hu.telcodata.integration.repository.NormalizedProductSpecifications;
 import hu.telcodata.integration.repository.ProcessingRunRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.Comparator;
 import java.util.List;
@@ -41,10 +47,27 @@ public class ProductService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public ProductPageResponseDto findProductsPage(Long runId, String filter, String sku,
+                                                    String name, String manufacturer,
+                                                    String finalPriceHuf, String stock, String ean,
+                                                    String source, Boolean valid, boolean onlyValid,
+                                                    int page, int size, String sort) {
+        validatePageRequest(page, size);
+        Long effectiveRunId = runId == null ? latestRunId() : runId;
+        Page<NormalizedProduct> products = productRepository.findAll(
+                NormalizedProductSpecifications.byQuery(effectiveRunId, filter, sku, name, manufacturer,
+                        finalPriceHuf, stock, ean, source, valid, onlyValid),
+                PageRequest.of(page, size, toDatabaseSort(sort)));
+        Page<ProductResponseDto> responsePage = products.map(productMapper::toResponse);
+        return new ProductPageResponseDto(responsePage.getContent(), responsePage.getNumber(),
+                responsePage.getSize(), responsePage.getTotalElements(), responsePage.getTotalPages());
+    }
+
     private Long latestRunId() {
         return processingRunRepository.findTopByStatusOrderByStartedAtDesc(ProcessingStatus.COMPLETED)
                 .map(run -> run.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("No completed processing run exists"));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstants.NO_COMPLETED_PROCESSING_RUN));
     }
 
     private boolean matches(NormalizedProduct product, String filter) {
@@ -74,11 +97,42 @@ public class ProductService {
             case ProductFieldNames.STOCK -> product -> comparable(product.getStock());
             case ProductFieldNames.UPDATED_AT -> product -> comparable(product.getUpdatedAt());
             case ProductFieldNames.SOURCE -> product -> comparable(product.getSource());
-            default -> throw new BadRequestException("Unsupported sort field: " + parts[0]);
+            default -> throw new BadRequestException(MessageConstants.unsupportedSortField(parts[0]));
         };
         Comparator<NormalizedProduct> comparator = Comparator.comparing(key,
                 Comparator.nullsLast(Comparator.naturalOrder()));
         return parts.length == 2 && "desc".equalsIgnoreCase(parts[1]) ? comparator.reversed() : comparator;
+    }
+
+    private Sort toDatabaseSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Sort.by(Sort.Direction.ASC, ProductFieldNames.SKU);
+        }
+        String[] parts = sort.split(":", 2);
+        String field = switch (parts[0]) {
+            case ProductFieldNames.SKU, ProductFieldNames.NAME, ProductFieldNames.MANUFACTURER,
+                    ProductFieldNames.FINAL_PRICE_HUF, ProductFieldNames.STOCK, ProductFieldNames.EAN,
+                    ProductFieldNames.UPDATED_AT, ProductFieldNames.SOURCE, ProductFieldNames.VALID -> parts[0];
+            default -> throw new BadRequestException(MessageConstants.unsupportedSortField(parts[0]));
+        };
+        Sort.Direction direction;
+        if (parts.length == 1 || "asc".equalsIgnoreCase(parts[1])) {
+            direction = Sort.Direction.ASC;
+        } else if ("desc".equalsIgnoreCase(parts[1])) {
+            direction = Sort.Direction.DESC;
+        } else {
+            throw new BadRequestException(MessageConstants.unsupportedSortDirection(parts[1]));
+        }
+        return Sort.by(direction, field);
+    }
+
+    private void validatePageRequest(int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException(MessageConstants.NEGATIVE_PAGE);
+        }
+        if (size < 1 || size > 100) {
+            throw new BadRequestException(MessageConstants.INVALID_PAGE_SIZE);
+        }
     }
 
     @SuppressWarnings("unchecked")

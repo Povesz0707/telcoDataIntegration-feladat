@@ -1,5 +1,7 @@
 package hu.telcodata.integration.domain;
 
+import hu.telcodata.integration.domain.enums.IssueCode;
+import hu.telcodata.integration.domain.enums.IssueSeverity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

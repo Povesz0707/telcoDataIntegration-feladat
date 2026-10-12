@@ -2,6 +2,13 @@
   [value]="products"
   [tableStyle]="{ 'min-width': '70rem' }"
   responsiveLayout="scroll"
+  [lazy]="true"
+  [paginator]="true"
+  [rows]="pageSize"
+  [first]="first"
+  [totalRecords]="totalRecords"
+  [rowsPerPageOptions]="[10, 25, 50]"
+  (onLazyLoad)="onLazyLoad($event)"
   filterDisplay="row"
   [filterDelay]="0"
   [loading]="loading || tableLoading()"
@@ -51,42 +58,42 @@
     </tr>
     <tr>
       <th>
-        <p-columnFilter [field]="productFields.sku" matchMode="displayContains" [showMenu]="false">
+        <p-columnFilter [field]="productFields.sku" matchMode="contains" [showMenu]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
             <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.sku, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.name" matchMode="displayContains" [showMenu]="false">
+        <p-columnFilter [field]="productFields.name" matchMode="contains" [showMenu]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
             <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.name, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.manufacturer" matchMode="displayContains" [showMenu]="false">
+        <p-columnFilter [field]="productFields.manufacturer" matchMode="contains" [showMenu]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
             <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.manufacturer, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.finalPriceHuf" matchMode="displayEquals" [showMenu]="false">
+        <p-columnFilter [field]="productFields.finalPriceHuf" matchMode="equals" [showMenu]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
             <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.finalPriceHuf, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.stock" matchMode="displayEquals" [showMenu]="false">
+        <p-columnFilter [field]="productFields.stock" matchMode="equals" [showMenu]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
             <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.stock, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.ean" matchMode="displayContains" [showMenu]="false">
+        <p-columnFilter [field]="productFields.ean" matchMode="contains" [showMenu]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
             <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.ean, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
           </ng-template>
@@ -141,10 +148,10 @@
       </td>
       <td class="text-center">
         <p-button
+          *ngIf="product.issues.length > 0"
           [icon]="issueButtonIcon(product)"
           [label]="product.issues.length.toString()"
           [severity]="issueButtonSeverity(product)"
-          [disabled]="product.issues.length === 0"
           size="small"
           [outlined]="true"
           [rounded]="false"

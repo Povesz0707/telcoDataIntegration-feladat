@@ -1,6 +1,6 @@
 package hu.telcodata.integration.api;
 
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.SourceType;
 import jakarta.validation.constraints.NotNull;
 
 public record ProcessingRunRequestDto(

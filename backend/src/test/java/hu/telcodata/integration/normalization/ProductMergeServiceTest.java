@@ -2,12 +2,12 @@ package hu.telcodata.integration.normalization;
 
 import hu.telcodata.integration.domain.CsvProductSource;
 import hu.telcodata.integration.domain.JsonProductSource;
-import hu.telcodata.integration.domain.IssueCode;
-import hu.telcodata.integration.domain.IssueSeverity;
+import hu.telcodata.integration.domain.enums.IssueCode;
+import hu.telcodata.integration.domain.enums.IssueSeverity;
 import hu.telcodata.integration.domain.NormalizedProduct;
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.SourceType;
 import hu.telcodata.integration.domain.UploadBatch;
-import hu.telcodata.integration.domain.UploadStatus;
+import hu.telcodata.integration.domain.enums.UploadStatus;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

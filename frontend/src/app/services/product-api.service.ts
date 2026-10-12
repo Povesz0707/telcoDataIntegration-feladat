@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   Product,
+  ProductPageResponse,
+  ProductTableQuery,
   ProcessingRunRequest,
   ProcessingRunResponse,
   SourceType,
@@ -37,6 +39,24 @@ export class ProductApiService {
   getProducts(options: { runId: number }): Observable<Product[]> {
     const params = new HttpParams().set('runId', options.runId);
     return this.http.get<Product[]>(`${this.baseUrl}/products`, { params });
+  }
+
+  getProductsPage(options: ProductTableQuery & { runId: number }): Observable<ProductPageResponse> {
+    let params = new HttpParams()
+      .set('runId', options.runId)
+      .set('page', options.page)
+      .set('size', options.size)
+      .set('sort', options.sort);
+
+    if (options.filter) {
+      params = params.set('filter', options.filter);
+    }
+
+    Object.entries(options.filters).forEach(([field, value]) => {
+      params = params.set(field, value);
+    });
+
+    return this.http.get<ProductPageResponse>(`${this.baseUrl}/products/page`, { params });
   }
 
   private upload(path: string, file: File): Observable<UploadResponse> {

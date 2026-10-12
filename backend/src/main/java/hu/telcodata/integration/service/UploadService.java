@@ -4,11 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReaderHeaderAware;
 import hu.telcodata.integration.api.UploadResponseDto;
+import hu.telcodata.integration.constant.MessageConstants;
 import hu.telcodata.integration.domain.CsvProductSource;
 import hu.telcodata.integration.domain.JsonProductSource;
-import hu.telcodata.integration.domain.SourceType;
+import hu.telcodata.integration.domain.enums.SourceType;
 import hu.telcodata.integration.domain.UploadBatch;
-import hu.telcodata.integration.domain.UploadStatus;
+import hu.telcodata.integration.domain.enums.UploadStatus;
 import hu.telcodata.integration.exception.BadRequestException;
 import hu.telcodata.integration.mapper.SourceMapper;
 import hu.telcodata.integration.repository.CsvProductSourceRepository;
@@ -95,13 +96,13 @@ public class UploadService {
                         row.toString()));
             }
             if (result.isEmpty()) {
-                throw new BadRequestException("The CSV file contains no data rows");
+                throw new BadRequestException(MessageConstants.CSV_EMPTY);
             }
             return result;
         } catch (BadRequestException exception) {
             throw exception;
         } catch (Exception exception) {
-            throw new BadRequestException("The CSV file could not be parsed", exception);
+            throw new BadRequestException(MessageConstants.CSV_PARSE_ERROR, exception);
         }
     }
 
@@ -110,24 +111,24 @@ public class UploadService {
             List<JsonProductInputDto> result = objectMapper.readValue(content, new TypeReference<>() {
             });
             if (result == null || result.isEmpty()) {
-                throw new BadRequestException("The JSON file contains no records");
+                throw new BadRequestException(MessageConstants.JSON_EMPTY);
             }
             return result;
         } catch (BadRequestException exception) {
             throw exception;
         } catch (Exception exception) {
-            throw new BadRequestException("The JSON file could not be parsed", exception);
+            throw new BadRequestException(MessageConstants.JSON_PARSE_ERROR, exception);
         }
     }
 
     private byte[] readContent(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new BadRequestException("An input file is required");
+            throw new BadRequestException(MessageConstants.INPUT_FILE_REQUIRED);
         }
         try {
             return file.getBytes();
         } catch (Exception exception) {
-            throw new BadRequestException("The input file could not be read", exception);
+            throw new BadRequestException(MessageConstants.INPUT_FILE_READ_ERROR, exception);
         }
     }
 
@@ -138,7 +139,7 @@ public class UploadService {
         try {
             return new BigDecimal(value.replace(" ", "").trim());
         } catch (NumberFormatException exception) {
-            throw new BadRequestException("Invalid numeric value in " + field + ": " + value, exception);
+            throw new BadRequestException(MessageConstants.invalidNumericValue(field, value), exception);
         }
     }
 
@@ -149,7 +150,7 @@ public class UploadService {
         try {
             return Integer.valueOf(value.trim());
         } catch (NumberFormatException exception) {
-            throw new BadRequestException("Invalid integer value in " + field + ": " + value, exception);
+            throw new BadRequestException(MessageConstants.invalidIntegerValue(field, value), exception);
         }
     }
 
@@ -169,7 +170,7 @@ public class UploadService {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
         } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256 is not available", exception);
+            throw new IllegalStateException(MessageConstants.SHA_256_UNAVAILABLE, exception);
         }
     }
 

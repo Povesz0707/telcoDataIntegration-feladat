@@ -1,7 +1,5 @@
 package hu.telcodata.integration.api;
 
-import hu.telcodata.integration.domain.IssueSeverity;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;

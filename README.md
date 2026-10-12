@@ -73,6 +73,26 @@ a fallback működését, a forrásütközéseket, a duplikációkat és a nem t
 Emellett a service réteg pozitív és negatív ágai is tesztelve vannak: fájlfeltöltés/parszolás,
 terméklekérdezés, szűrés és rendezés, feldolgozási futás, hiányzó erőforrások és hibás bemenetek.
 
+### Backend integrációs tesztek
+
+A `mvn test` parancs a gyors unit teszteket futtatja. Az integrációs tesztek a teljes HTTP réteget (`MockMvc`), a Spring kontextust, a JPA perzisztenciát
+és a PostgreSQL adatbázist együtt ellenőrzik. H2 nincs használatban. A tesztek futtatása előtt a
+Docker Compose PostgreSQL szolgáltatását el kell indítani:
+
+```text
+docker compose up -d postgres
+cd backend
+mvn verify
+```
+
+A tesztprofil alapértelmezés szerint a különálló `localhost:5432/telco_test` adatbázist használja,
+így a tesztek nem módosítják és nem törlik a fejlesztési `telco` adatbázis adatait. Külön tesztadatbázis
+beállítható a `TEST_DB_URL`, `TEST_DB_USERNAME` és `TEST_DB_PASSWORD` környezeti változókkal.
+
+Az integrációs tesztek lefedik a sikeres CSV/JSON feltöltést és normalizálást, az elsődleges forrás
+és a fallback működését, a legutóbbi futás nélküli lekérdezést, az érvénytelen JSON feltöltést,
+valamint a hibás forráshoz tartozó batch elutasítását.
+
 ### Playwright felületi tesztek
 
 A Playwright tesztek futtatásához a PostgreSQL, backend és frontend szolgáltatásoknak futniuk kell:
@@ -165,5 +185,16 @@ Paraméterek:
 - `filter`: szabad szöveges szűrő; üres értéknél nincs szűrés.
 - `sort`: rendezés `mező:asc` vagy `mező:desc` formátumban; üres értéknél az alapértelmezett rendezés érvényesül.
 - `onlyValid`: `true` esetén csak a valid rekordok kerülnek visszaadásra; üres vagy `false` értéknél minden rekord visszakerül.
+
+A felület által használt, adatbázisoldali szűrést és lapozást biztosító végpont:
+
+```http
+GET /api/products/page?runId=1&page=0&size=10&sort=sku:asc&sku=SKU1001&valid=true
+```
+
+A `page` nulla alapú, a `size` értéke 1 és 100 közötti lehet. Támogatott szűrőparaméterek:
+`filter`, `sku`, `name`, `manufacturer`, `finalPriceHuf`, `stock`, `ean`, `source`, `valid` és
+`onlyValid`. A válasz `content`, `page`, `size`, `totalElements` és `totalPages` mezőket tartalmaz.
+Az eredeti, lapozás nélküli `GET /api/products` végpont továbbra is elérhető.
 
 Engedélyezett rendezési mezők: `sku`, `name`, `manufacturer`, `finalPriceHuf`, `stock`, `updatedAt`, `source`.

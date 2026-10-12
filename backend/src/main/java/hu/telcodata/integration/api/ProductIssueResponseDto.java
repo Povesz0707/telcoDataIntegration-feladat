@@ -1,7 +1,7 @@
 package hu.telcodata.integration.api;
 
-import hu.telcodata.integration.domain.IssueSeverity;
-import hu.telcodata.integration.domain.IssueCode;
+import hu.telcodata.integration.domain.enums.IssueSeverity;
+import hu.telcodata.integration.domain.enums.IssueCode;
 
 public record ProductIssueResponseDto(
         IssueCode code,
