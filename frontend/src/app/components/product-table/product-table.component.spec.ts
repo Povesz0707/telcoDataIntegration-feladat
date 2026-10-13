@@ -54,6 +54,31 @@ describe('ProductTableComponent', () => {
     });
   });
 
+  it('keeps the numeric gross price filter for a partial database search', () => {
+    let query: unknown;
+    component.queryChanged.subscribe(value => query = value);
+
+    component.onLazyLoad({
+      first: 0,
+      rows: 10,
+      sortField: 'finalPriceHuf',
+      sortOrder: 1,
+      filters: {
+        finalPriceHuf: { value: 127 }
+      }
+    });
+
+    expect(query).toEqual({
+      page: 0,
+      size: 10,
+      sort: 'finalPriceHuf:asc',
+      filter: undefined,
+      filters: {
+        finalPriceHuf: 127
+      }
+    });
+  });
+
   it('delays filter callbacks and clears the loading state afterwards', fakeAsync(() => {
     let filteredValue: unknown = 'not-called';
 
@@ -87,6 +112,32 @@ describe('ProductTableComponent', () => {
     expect(calls).toBe(1);
     expect(lastValue).toBe('new');
   }));
+
+  it('uses the null filter value for database null filtering', fakeAsync(() => {
+    let filteredValue: unknown;
+
+    component.toggleNullFilter('updatedAt', value => filteredValue = value, undefined);
+    tick(350);
+
+    expect(filteredValue).toBe('null');
+    expect(component.isNullFilter(filteredValue)).toBeTrue();
+  }));
+
+  it('converts a selected date to the backend day filter format', fakeAsync(() => {
+    let filteredValue: unknown;
+
+    component.onDateFilterChange('updatedAt', value => filteredValue = value, new Date(2025, 9, 1));
+    tick(350);
+
+    expect(filteredValue).toBe('2025-10-01');
+  }));
+
+  it('reuses the same date instance during filter rendering', () => {
+    const firstValue = component.dateFilterInputValue('2025-10-01');
+    const secondValue = component.dateFilterInputValue('2025-10-01');
+
+    expect(secondValue).toBe(firstValue);
+  });
 
   it('uses different icons and severities for errors and warnings', () => {
     const errorProduct = productWithIssue(IssueSeverity.ERROR);

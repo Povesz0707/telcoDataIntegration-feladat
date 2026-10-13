@@ -63,12 +63,13 @@ describe('ProductApiService', () => {
       filter: 'charger',
       filters: {
         manufacturer: 'Voltix',
-        valid: false
+        valid: false,
+        updatedAt: 'null'
       }
     }).subscribe();
 
     const request = httpTesting.expectOne(
-      '/api/products/page?runId=7&page=2&size=25&sort=name:desc&filter=charger&manufacturer=Voltix&valid=false'
+      '/api/products/page?runId=7&page=2&size=25&sort=name:desc&filter=charger&manufacturer=Voltix&valid=false&updatedAt=null'
     );
     expect(request.request.method).toBe('GET');
     expect(request.request.params.get('runId')).toBe('7');
@@ -78,6 +79,7 @@ describe('ProductApiService', () => {
     expect(request.request.params.get('filter')).toBe('charger');
     expect(request.request.params.get('manufacturer')).toBe('Voltix');
     expect(request.request.params.get('valid')).toBe('false');
+    expect(request.request.params.get('updatedAt')).toBe('null');
     request.flush({ content: [], page: 2, size: 25, totalElements: 0, totalPages: 0 });
   });
 

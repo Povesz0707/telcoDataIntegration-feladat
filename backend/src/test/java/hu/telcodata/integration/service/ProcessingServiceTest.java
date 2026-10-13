@@ -90,6 +90,15 @@ class ProcessingServiceTest {
     }
 
     @Test
+    void processRejectsMissingPrimarySource() {
+        assertThatThrownBy(() -> service.process(new ProcessingRunRequestDto(1L, 2L,
+                null, false)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("A primary source must be selected");
+        verify(productMergeService, never()).merge(any(), any(), any(), anyBoolean());
+    }
+
+    @Test
     void processRejectsMissingCsvBatch() {
         when(uploadBatchRepository.findById(1L)).thenReturn(Optional.empty());
 

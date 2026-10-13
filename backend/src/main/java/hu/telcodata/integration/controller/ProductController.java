@@ -62,13 +62,14 @@ public class ProductController {
             @RequestParam(required = false) String finalPriceHuf,
             @RequestParam(required = false) String stock,
             @RequestParam(required = false) String ean,
+            @RequestParam(required = false) String updatedAt,
             @RequestParam(required = false) String source,
-            @RequestParam(required = false) Boolean valid,
+            @RequestParam(required = false) String valid,
             @RequestParam(defaultValue = "false") boolean onlyValid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "sku:asc") String sort) {
         return ResponseEntity.ok(productService.findProductsPage(runId, filter, sku, name, manufacturer,
-                finalPriceHuf, stock, ean, source, valid, onlyValid, page, size, sort));
+                finalPriceHuf, stock, ean, updatedAt, source, valid, onlyValid, page, size, sort));
     }
 }

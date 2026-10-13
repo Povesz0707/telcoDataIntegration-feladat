@@ -54,7 +54,7 @@ public class ProductService {
     public ProductPageResponseDto findProductsPage(Long runId, String filter, String sku,
                                                     String name, String manufacturer,
                                                     String finalPriceHuf, String stock, String ean,
-                                                    String source, Boolean valid, boolean onlyValid,
+                                                    String updatedAt, String source, String valid, boolean onlyValid,
                                                     int page, int size, String sort) {
         validatePageRequest(page, size);
         Long effectiveRunId = runId == null ? latestRunId() : runId;
@@ -63,7 +63,7 @@ public class ProductService {
                 runId, effectiveRunId, page, size, filter != null && !filter.isBlank(), sort, onlyValid);
         Page<NormalizedProduct> products = productRepository.findAll(
                 NormalizedProductSpecifications.byQuery(effectiveRunId, filter, sku, name, manufacturer,
-                        finalPriceHuf, stock, ean, source, valid, onlyValid),
+                        finalPriceHuf, stock, ean, updatedAt, source, valid, onlyValid),
                 PageRequest.of(page, size, productSort.toDatabaseSort()));
         Page<ProductResponseDto> responsePage = products.map(productMapper::toResponse);
         return new ProductPageResponseDto(responsePage.getContent(), responsePage.getNumber(),

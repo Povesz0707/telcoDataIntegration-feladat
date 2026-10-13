@@ -11,6 +11,7 @@ public final class MessageConstants {
     public static final String SHA_256_UNAVAILABLE = "SHA-256 is not available";
     public static final String NO_COMPLETED_PROCESSING_RUN = "No completed processing run exists";
     public static final String INVALID_REQUEST = "Invalid request";
+    public static final String PRIMARY_SOURCE_REQUIRED = "A primary source must be selected";
     public static final String MALFORMED_REQUEST_BODY = "The request body is missing or malformed";
     public static final String MISSING_REQUEST_PART = "Required request part is missing: %s";
     public static final String MISSING_REQUEST_PARAMETER = "Required request parameter is missing: %s";

@@ -68,14 +68,6 @@
                 count: lastRun.totalCount
               }) }}
             </span>
-            <span class="font-medium" *ngIf="processingRun() as currentRun">
-              {{ i18n.t('processing.historyCurrent', {
-                runId: currentRun.runId,
-                primarySource: i18n.source(currentRun.primarySource),
-                count: currentRun.totalCount,
-                date: formatProcessingDate(currentRun.startedAt)
-              }) }}
-            </span>
           </div>
         </div>
       </p-accordion-header>
@@ -96,6 +88,14 @@
           <i class="pi pi-list text-primary"></i>
           <div>
             <div class="text-xl font-semibold">{{ i18n.t('products.title') }}</div>
+            <span class="text-color-secondary text-sm" *ngIf="processingRun() as currentRun">
+              {{ i18n.t('processing.historyCurrent', {
+                runId: currentRun.runId,
+                primarySource: i18n.source(currentRun.primarySource),
+                count: currentRun.totalCount,
+                date: formatProcessingDate(currentRun.startedAt)
+              }) }}
+            </span>
             <span class="text-color-secondary text-sm" *ngIf="!processingRun()">{{ i18n.t('products.emptyRun') }}</span>
           </div>
         </div>

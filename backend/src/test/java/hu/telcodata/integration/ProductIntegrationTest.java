@@ -122,6 +122,33 @@ class ProductIntegrationTest {
                 .andExpect(jsonPath("$[0].issues[*].code").value(hasItem("FALLBACK_VALUE_USED")))
                 .andExpect(jsonPath("$[0].issues[*].field").value(hasItem("stock")));
 
+        mockMvc.perform(get("/api/products/page")
+                        .param("runId", String.valueOf(runId))
+                        .param("finalPriceHuf", "127")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].sku").value("SKU1001"));
+
+        mockMvc.perform(get("/api/products/page")
+                        .param("runId", String.valueOf(runId))
+                        .param("updatedAt", "2025-10-01")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].sku").value("SKU1001"));
+
+        mockMvc.perform(get("/api/products/page")
+                        .param("runId", String.valueOf(runId))
+                        .param("updatedAt", "null")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].sku").value("P-1002"));
+
         mockMvc.perform(get("/api/products")
                         .param("filter", "")
                         .param("sort", "")

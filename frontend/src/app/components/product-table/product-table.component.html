@@ -8,9 +8,11 @@
   [first]="first"
   [totalRecords]="totalRecords"
   [rowsPerPageOptions]="[10, 25, 50]"
+  [showCurrentPageReport]="true"
+  [currentPageReportTemplate]="i18n.t('products.currentPageReport')"
   (onLazyLoad)="onLazyLoad($event)"
   filterDisplay="row"
-  [filterDelay]="0"
+  [filterDelay]="350"
   [loading]="loading || tableLoading()"
   [showLoader]="false"
   size="small"
@@ -58,75 +60,130 @@
     </tr>
     <tr>
       <th>
-        <p-columnFilter [field]="productFields.sku" matchMode="contains" [showMenu]="false">
+        <p-columnFilter [field]="productFields.sku" matchMode="contains" [showMenu]="false" [showClearButton]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-            <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.sku, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+            <div class="flex align-items-center gap-1">
+              <input pInputText [ngModel]="filterInputValue(value)" (ngModelChange)="scheduleFilter(productFields.sku, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.sku, value: value, filter: filter }"></ng-container>
+            </div>
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.name" matchMode="contains" [showMenu]="false">
+        <p-columnFilter [field]="productFields.name" matchMode="contains" [showMenu]="false" [showClearButton]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-            <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.name, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+            <div class="flex align-items-center gap-1">
+              <input pInputText [ngModel]="filterInputValue(value)" (ngModelChange)="scheduleFilter(productFields.name, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.name, value: value, filter: filter }"></ng-container>
+            </div>
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.manufacturer" matchMode="contains" [showMenu]="false">
+        <p-columnFilter [field]="productFields.manufacturer" matchMode="contains" [showMenu]="false" [showClearButton]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-            <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.manufacturer, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+            <div class="flex align-items-center gap-1">
+              <input pInputText [ngModel]="filterInputValue(value)" (ngModelChange)="scheduleFilter(productFields.manufacturer, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.manufacturer, value: value, filter: filter }"></ng-container>
+            </div>
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.finalPriceHuf" matchMode="equals" [showMenu]="false">
+        <p-columnFilter [field]="productFields.finalPriceHuf" matchMode="contains" [showMenu]="false" [showClearButton]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-            <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.finalPriceHuf, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+            <div class="flex align-items-center gap-1">
+              <p-inputNumber
+                [ngModel]="filterInputValue(value)"
+                (ngModelChange)="scheduleFilter(productFields.finalPriceHuf, filter, $event)"
+                [useGrouping]="false"
+                [min]="0"
+                [placeholder]="i18n.t('products.filters.contains')">
+              </p-inputNumber>
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.finalPriceHuf, value: value, filter: filter }"></ng-container>
+            </div>
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.stock" matchMode="equals" [showMenu]="false">
+        <p-columnFilter [field]="productFields.stock" matchMode="contains" [showMenu]="false" [showClearButton]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-            <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.stock, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+            <div class="flex align-items-center gap-1">
+              <p-inputNumber
+                [ngModel]="filterInputValue(value)"
+                (ngModelChange)="scheduleFilter(productFields.stock, filter, $event)"
+                [useGrouping]="false"
+                [min]="0"
+                [maxFractionDigits]="0"
+                [placeholder]="i18n.t('products.filters.contains')">
+              </p-inputNumber>
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.stock, value: value, filter: filter }"></ng-container>
+            </div>
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.ean" matchMode="contains" [showMenu]="false">
+        <p-columnFilter [field]="productFields.ean" matchMode="contains" [showMenu]="false" [showClearButton]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-            <input pInputText [ngModel]="value ?? ''" (ngModelChange)="scheduleFilter(productFields.ean, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
-          </ng-template>
-        </p-columnFilter>
-      </th>
-      <th></th>
-      <th>
-        <p-columnFilter [field]="productFields.source" matchMode="equals" [showMenu]="false">
-          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-            <p-select
-              [options]="sourceOptions()"
-              optionLabel="label"
-              optionValue="value"
-              [ngModel]="value"
-              (ngModelChange)="scheduleFilter(productFields.source, filter, $event)"
-              [showClear]="true"
-              [placeholder]="i18n.t('products.filters.any')">
-            </p-select>
+            <div class="flex align-items-center gap-1">
+              <input pInputText [ngModel]="filterInputValue(value)" (ngModelChange)="scheduleFilter(productFields.ean, filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.ean, value: value, filter: filter }"></ng-container>
+            </div>
           </ng-template>
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter [field]="productFields.valid" matchMode="equals" [showMenu]="false">
+        <p-columnFilter [field]="productFields.updatedAt" matchMode="contains" [showMenu]="false" [showClearButton]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-            <p-select
-              [options]="statusOptions()"
-              optionLabel="label"
-              optionValue="value"
-              [ngModel]="value"
-              (ngModelChange)="scheduleFilter(productFields.valid, filter, $event)"
-              [showClear]="true"
-              [placeholder]="i18n.t('products.filters.any')">
-            </p-select>
+            <div class="flex align-items-center gap-1">
+              <p-datepicker
+                [ngModel]="dateFilterInputValue(value)"
+                (onSelect)="onDateFilterChange(productFields.updatedAt, filter, $event)"
+                (onClear)="onDateFilterClear(productFields.updatedAt, filter)"
+                dateFormat="yy-mm-dd"
+                [showIcon]="true"
+                [showClear]="true"
+                [readonlyInput]="true"
+                [placeholder]="i18n.t('products.filters.date')">
+              </p-datepicker>
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.updatedAt, value: value, filter: filter }"></ng-container>
+            </div>
+          </ng-template>
+        </p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter [field]="productFields.source" matchMode="equals" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <div class="flex align-items-center gap-1">
+              <p-select
+                [options]="sourceOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="filterInputValue(value)"
+                (ngModelChange)="scheduleFilter(productFields.source, filter, $event)"
+                [showClear]="true"
+                [placeholder]="i18n.t('products.filters.any')">
+              </p-select>
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.source, value: value, filter: filter }"></ng-container>
+            </div>
+          </ng-template>
+        </p-columnFilter>
+      </th>
+      <th>
+        <p-columnFilter [field]="productFields.valid" matchMode="equals" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <div class="flex align-items-center gap-1">
+              <p-select
+                [options]="statusOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="filterInputValue(value)"
+                (ngModelChange)="scheduleFilter(productFields.valid, filter, $event)"
+                [showClear]="true"
+                [placeholder]="i18n.t('products.filters.any')">
+              </p-select>
+              <ng-container *ngTemplateOutlet="nullFilterButton; context: { field: productFields.valid, value: value, filter: filter }"></ng-container>
+            </div>
           </ng-template>
         </p-columnFilter>
       </th>
@@ -175,6 +232,19 @@
     </tr>
   </ng-template>
 </p-table>
+
+<ng-template #nullFilterButton let-field="field" let-value="value" let-filter="filter">
+  <p-button
+    [icon]="isNullFilter(value) ? 'pi pi-filter-slash' : 'pi pi-ban'"
+    [text]="true"
+    size="small"
+    severity="secondary"
+    [ariaLabel]="isNullFilter(value) ? i18n.t('products.filters.clear') : i18n.t('products.filters.null')"
+    [pTooltip]="isNullFilter(value) ? i18n.t('products.filters.clear') : i18n.t('products.filters.null')"
+    tooltipPosition="top"
+    (onClick)="toggleNullFilter(field, filter, value)">
+  </p-button>
+</ng-template>
 
 <p-dialog
   [(visible)]="issuesDialogVisible"

@@ -122,7 +122,7 @@ class ProductServiceTest {
     @Test
     void findProductsPageUsesTheSameSortValidation() {
         assertThatThrownBy(() -> service.findProductsPage(14L, "", null, null, null, null,
-                null, null, null, null, false, 0, 20, "sku:descending"))
+                null, null, null, null, null, false, 0, 20, "sku:descending"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Unsupported sort direction: descending");
     }

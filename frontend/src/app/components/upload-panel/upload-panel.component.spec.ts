@@ -60,6 +60,20 @@ describe('UploadPanelComponent', () => {
     expect(emitted).toBeFalse();
   });
 
+  it('does not emit a processing request without a primary source', () => {
+    const csvFile = new File(['sku,name'], 'products.csv', { type: 'text/csv' });
+    const jsonFile = new File(['[]'], 'products.json', { type: 'application/json' });
+    let emitted = false;
+    component.processRequested.subscribe(() => emitted = true);
+    component.primarySource = null;
+    component.handleFileInput(fileEvent(csvFile), SourceType.CSV);
+    component.handleFileInput(fileEvent(jsonFile), SourceType.JSON);
+
+    component.startProcessing();
+
+    expect(emitted).toBeFalse();
+  });
+
   it('emits the selected files and processing options', () => {
     const csvFile = new File(['sku,name'], 'products.csv', { type: 'text/csv' });
     const jsonFile = new File(['[]'], 'products.json', { type: 'application/json' });

@@ -1,5 +1,5 @@
 <p-table
-  [value]="runs"
+  [value]="displayedRuns"
   [tableStyle]="{ 'min-width': '62rem' }"
   responsiveLayout="scroll"
   filterDisplay="row"
@@ -11,7 +11,9 @@
   styleClass="p-datatable-sm">
   <ng-template pTemplate="header">
     <tr>
-      <th>{{ i18n.t('processing.historyColumns.active') }}</th>
+      <th>
+        {{ i18n.t('processing.historyColumns.active') }}
+      </th>
       <th pSortableColumn="runId">
         {{ i18n.t('processing.historyColumns.runId') }}
         <p-sortIcon field="runId"></p-sortIcon>
@@ -52,19 +54,73 @@
     <tr>
       <th></th>
       <th>
-        <p-columnFilter field="runId" type="numeric" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+        <p-columnFilter field="runId" matchMode="equals" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-inputNumber
+              [ngModel]="filterNumberValue(value)"
+              (ngModelChange)="scheduleFilter('runId', filter, $event)"
+              [useGrouping]="false"
+              [min]="0"
+              [placeholder]="i18n.t('products.filters.contains')">
+            </p-inputNumber>
+          </ng-template>
+        </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter field="startedAt" type="text" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+        <p-columnFilter field="startedAtDate" matchMode="equals" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-datepicker
+              [ngModel]="dateFilterInputValue(value)"
+              (onSelect)="onDateFilterChange(filter, $event)"
+              (onClear)="onDateFilterClear(filter)"
+              dateFormat="yy-mm-dd"
+              appendTo="body"
+              [showIcon]="true"
+              [showClear]="true"
+              [readonlyInput]="true"
+              [placeholder]="i18n.t('products.filters.date')">
+            </p-datepicker>
+          </ng-template>
+        </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter field="totalCount" type="numeric" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+        <p-columnFilter field="totalCount" matchMode="equals" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-inputNumber
+              [ngModel]="filterNumberValue(value)"
+              (ngModelChange)="scheduleFilter('totalCount', filter, $event)"
+              [useGrouping]="false"
+              [min]="0"
+              [placeholder]="i18n.t('products.filters.contains')">
+            </p-inputNumber>
+          </ng-template>
+        </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter field="validCount" type="numeric" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+        <p-columnFilter field="validCount" matchMode="equals" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-inputNumber
+              [ngModel]="filterNumberValue(value)"
+              (ngModelChange)="scheduleFilter('validCount', filter, $event)"
+              [useGrouping]="false"
+              [min]="0"
+              [placeholder]="i18n.t('products.filters.contains')">
+            </p-inputNumber>
+          </ng-template>
+        </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter field="invalidCount" type="numeric" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+        <p-columnFilter field="invalidCount" matchMode="equals" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-inputNumber
+              [ngModel]="filterNumberValue(value)"
+              (ngModelChange)="scheduleFilter('invalidCount', filter, $event)"
+              [useGrouping]="false"
+              [min]="0"
+              [placeholder]="i18n.t('products.filters.contains')">
+            </p-inputNumber>
+          </ng-template>
+        </p-columnFilter>
       </th>
       <th>
         <p-columnFilter field="primarySource" matchMode="equals" [showMenu]="false">
@@ -74,7 +130,7 @@
               optionLabel="label"
               optionValue="value"
               [ngModel]="value"
-              (ngModelChange)="filter($event)"
+              (ngModelChange)="scheduleFilter('primarySource', filter, $event)"
               [showClear]="true"
               [placeholder]="i18n.t('products.filters.any')">
             </p-select>
@@ -89,7 +145,7 @@
               optionLabel="label"
               optionValue="value"
               [ngModel]="value"
-              (ngModelChange)="filter($event)"
+              (ngModelChange)="scheduleFilter('fallbackMissingValues', filter, $event)"
               [showClear]="true"
               [placeholder]="i18n.t('products.filters.any')">
             </p-select>
@@ -97,10 +153,18 @@
         </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter field="csvFilename" type="text" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+        <p-columnFilter field="csvFilename" matchMode="contains" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <input pInputText [ngModel]="filterTextValue(value)" (ngModelChange)="scheduleFilter('csvFilename', filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+          </ng-template>
+        </p-columnFilter>
       </th>
       <th>
-        <p-columnFilter field="jsonFilename" type="text" [showMenu]="false" [placeholder]="i18n.t('products.filters.contains')"></p-columnFilter>
+        <p-columnFilter field="jsonFilename" matchMode="contains" [showMenu]="false" [showClearButton]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <input pInputText [ngModel]="filterTextValue(value)" (ngModelChange)="scheduleFilter('jsonFilename', filter, $event)" [placeholder]="i18n.t('products.filters.contains')">
+          </ng-template>
+        </p-columnFilter>
       </th>
     </tr>
   </ng-template>
@@ -116,7 +180,7 @@
         <span *ngIf="run.runId !== selectedRunId" class="text-color-secondary">{{ i18n.t('common.none') }}</span>
       </td>
       <td class="font-semibold">{{ run.runId }}</td>
-      <td class="white-space-nowrap">{{ formatDate(run.startedAt) }}</td>
+      <td class="white-space-nowrap">{{ run.startedAtDisplay }}</td>
       <td>{{ run.totalCount }}</td>
       <td><p-tag [value]="run.validCount.toString()" severity="success"></p-tag></td>
       <td><p-tag [value]="run.invalidCount.toString()" severity="danger"></p-tag></td>

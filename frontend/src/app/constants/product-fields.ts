@@ -9,3 +9,5 @@ export const PRODUCT_FIELDS = {
   source: 'source',
   valid: 'valid'
 } as const;
+
+export const NULL_FILTER_VALUE = 'null';

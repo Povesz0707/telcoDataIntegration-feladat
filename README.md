@@ -24,10 +24,10 @@ Minden kérés `X-Correlation-Id` azonosítót kap (vagy a kliens által küldö
 amely a válasz fejlécében és minden kapcsolódó logbejegyzésben megjelenik. Fájlok tartalma és
 érzékeny adat nem kerül naplózásra.
 
-Az aktív logfájl postfix nélküli:
-`logs/telco-data-integration.log`. Naponta új archívum indul, napon belül pedig 20 MB után
-új fájl készül, például `telco-data-integration.2026-10-12_001.log` és
-`telco-data-integration.2026-10-12_002.log`. Az archívumok 30 napig, legfeljebb 2 GB összméretig
+Az aktív logfájl neve tartalmazza az alkalmazás indulásának dátumát, például:
+`logs/telco-data-integration.2026-10-13.log`. Napon belül 20 MB után új fájl készül `_001`,
+`_002` stb. postfixszel, például `telco-data-integration.2026-10-13_001.log` és
+`telco-data-integration.2026-10-13_002.log`. Az archívumok 30 napig, legfeljebb 2 GB összméretig
 maradnak meg. A `LOG_PATH` környezeti változóval a log könyvtára módosítható.
 
 ## Futtatás

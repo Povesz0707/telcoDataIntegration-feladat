@@ -78,7 +78,16 @@
   <div class="grid align-items-end mb-0">
     <div class="col-12 md:col-5">
       <label class="block mb-2">{{ i18n.t('upload.primarySource') }}</label>
-      <p-selectButton [options]="sourceOptions()" [(ngModel)]="primarySource" optionLabel="label" optionValue="value"></p-selectButton>
+      <p-selectButton
+        [options]="sourceOptions()"
+        [(ngModel)]="primarySource"
+        [allowEmpty]="false"
+        optionLabel="label"
+        optionValue="value">
+      </p-selectButton>
+      <small *ngIf="!primarySource" class="block text-red-500 mt-2">
+        {{ i18n.t('upload.primarySourceRequired') }}
+      </small>
     </div>
     <div class="col-12 md:col-5 flex align-items-center gap-2">
       <p-toggleswitch [(ngModel)]="fallbackMissingValues" inputId="fallbackMissingValues"></p-toggleswitch>
@@ -88,7 +97,7 @@
       <p-button
         [label]="i18n.t('upload.process')"
         icon="pi pi-play"
-        [disabled]="!csvFile || !jsonFile || busy"
+        [disabled]="!csvFile || !jsonFile || !primarySource || busy"
         (onClick)="startProcessing()">
       </p-button>
     </div>

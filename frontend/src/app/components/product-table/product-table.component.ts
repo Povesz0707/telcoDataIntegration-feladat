@@ -2,29 +2,34 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, Output, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { PRODUCT_FIELDS } from '../../constants/product-fields';
+import { TooltipModule } from 'primeng/tooltip';
+import { NULL_FILTER_VALUE, PRODUCT_FIELDS } from '../../constants/product-fields';
 import { IssueSeverity, Product, ProductIssue, ProductTableQuery, SourceType } from '../../models/product.models';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-product-table',
   standalone: true,
-  imports: [ButtonModule, CommonModule, DialogModule, DividerModule, FormsModule, InputTextModule, SelectModule, SkeletonModule, TableModule, TagModule],
+  imports: [ButtonModule, CommonModule, DatePickerModule, DialogModule, DividerModule, FormsModule, InputNumberModule, InputTextModule, SelectModule, SkeletonModule, TableModule, TagModule, TooltipModule],
   templateUrl: './product-table.component.html'
 })
 export class ProductTableComponent implements OnDestroy {
   readonly productFields = PRODUCT_FIELDS;
   private readonly filterDelayMs = 350;
   private readonly filterTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly parsedDateFilters = new Map<string, Date>();
   readonly i18n = inject(LanguageService);
   readonly issueSeverity = IssueSeverity;
+  readonly nullFilterValue = NULL_FILTER_VALUE;
   readonly sourceOptions = computed(() => [
     { label: this.i18n.source(SourceType.CSV), value: SourceType.CSV },
     { label: this.i18n.source(SourceType.JSON), value: SourceType.JSON },
@@ -66,9 +71,65 @@ export class ProductTableComponent implements OnDestroy {
     this.filterTimers.set(field, timer);
   }
 
+  filterInputValue(value: unknown): string | number | boolean | null {
+    return this.isNullFilter(value) ? null : (value as string | number | boolean | null | undefined) ?? null;
+  }
+
+  dateFilterInputValue(value: unknown): Date | null {
+    if (this.isNullFilter(value) || !value) {
+      return null;
+    }
+    if (value instanceof Date) {
+      return this.cachedDate(value);
+    }
+    if (typeof value !== 'string') {
+      return null;
+    }
+    const [year, month, day] = value.split('-').map(Number);
+    return Number.isInteger(year) && Number.isInteger(month) && Number.isInteger(day)
+      ? this.cachedDate(new Date(year, month - 1, day))
+      : null;
+  }
+
+  onDateFilterChange(field: string, filterCallback: (value: unknown) => void, value: Date | string | null): void {
+    const date = value instanceof Date ? value : this.dateFilterInputValue(value);
+    this.scheduleFilter(field, filterCallback, date ? this.formatFilterDate(date) : null);
+  }
+
+  onDateFilterClear(field: string, filterCallback: (value: unknown) => void): void {
+    this.scheduleFilter(field, filterCallback, null);
+  }
+
+  private formatFilterDate(value: Date): string {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  isNullFilter(value: unknown): boolean {
+    return value === this.nullFilterValue;
+  }
+
+  toggleNullFilter(field: string, filterCallback: (value: unknown) => void, value: unknown): void {
+    this.scheduleFilter(field, filterCallback, this.isNullFilter(value) ? null : this.nullFilterValue);
+  }
+
   ngOnDestroy(): void {
     this.filterTimers.forEach(timer => clearTimeout(timer));
     this.filterTimers.clear();
+    this.parsedDateFilters.clear();
+  }
+
+  private cachedDate(value: Date): Date {
+    const key = this.formatFilterDate(value);
+    const cachedValue = this.parsedDateFilters.get(key);
+    if (cachedValue) {
+      return cachedValue;
+    }
+    const stableValue = new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    this.parsedDateFilters.set(key, stableValue);
+    return stableValue;
   }
 
   openIssues(product: Product): void {
@@ -98,7 +159,7 @@ export class ProductTableComponent implements OnDestroy {
 
   onLazyLoad(event: TableLazyLoadEvent): void {
     const rows = event.rows ?? this.pageSize;
-    const filters: Record<string, string | boolean> = {};
+    const filters: Record<string, string | number | boolean> = {};
 
     Object.entries(event.filters ?? {}).forEach(([field, metadata]) => {
       const filter = Array.isArray(metadata) ? metadata[0] : metadata;

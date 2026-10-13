@@ -38,21 +38,19 @@ public class ProcessingService {
 
     @Transactional
     public ProcessingRunResponseDto process(ProcessingRunRequestDto request) {
-        log.info("Processing started: csvBatchId={}, jsonBatchId={}, primarySource={}, fallbackMissingValues={}",
-                request.csvBatchId(), request.jsonBatchId(), request.primarySource(), request.fallbackMissingValues());
+        if (request.primarySource() == null) {
+            throw new BadRequestException(MessageConstants.PRIMARY_SOURCE_REQUIRED);
+        }
+        log.info("Processing started: csvBatchId={}, jsonBatchId={}, primarySource={}, fallbackMissingValues={}", request.csvBatchId(), request.jsonBatchId(), request.primarySource(), request.fallbackMissingValues());
         UploadBatch csvBatch = getBatch(request.csvBatchId(), SourceType.CSV);
         UploadBatch jsonBatch = getBatch(request.jsonBatchId(), SourceType.JSON);
 
-        List<CsvProductSource> csvRecords = csvProductSourceRepository
-                .findAllByUploadBatchIdOrderByRowNumber(csvBatch.getId());
-        List<JsonProductSource> jsonRecords = jsonProductSourceRepository
-                .findAllByUploadBatchIdOrderByRowNumber(jsonBatch.getId());
+        List<CsvProductSource> csvRecords = csvProductSourceRepository.findAllByUploadBatchIdOrderByRowNumber(csvBatch.getId());
+        List<JsonProductSource> jsonRecords = jsonProductSourceRepository.findAllByUploadBatchIdOrderByRowNumber(jsonBatch.getId());
 
-        ProcessingRun run = processingRunRepository.save(new ProcessingRun(
-                csvBatch, jsonBatch, request.primarySource(), request.fallbackMissingValues()));
+        ProcessingRun run = processingRunRepository.save(new ProcessingRun(csvBatch, jsonBatch, request.primarySource(), request.fallbackMissingValues()));
 
-        List<NormalizedProduct> products = productMergeService.merge(
-                csvRecords, jsonRecords, request.primarySource(), request.fallbackMissingValues());
+        List<NormalizedProduct> products = productMergeService.merge(csvRecords, jsonRecords, request.primarySource(), request.fallbackMissingValues());
         products.forEach(run::addProduct);
 
         int validCount = (int) products.stream().filter(NormalizedProduct::isValid).count();
@@ -60,11 +58,9 @@ public class ProcessingService {
         processingRunRepository.save(run);
         int invalidCount = products.size() - validCount;
         if (invalidCount > 0) {
-            log.warn("Processing completed with invalid products: runId={}, totalCount={}, validCount={}, invalidCount={}",
-                    run.getId(), products.size(), validCount, invalidCount);
+            log.warn("Processing completed with invalid products: runId={}, totalCount={}, validCount={}, invalidCount={}", run.getId(), products.size(), validCount, invalidCount);
         } else {
-            log.info("Processing completed: runId={}, totalCount={}, validCount={}",
-                    run.getId(), products.size(), validCount);
+            log.info("Processing completed: runId={}, totalCount={}, validCount={}", run.getId(), products.size(), validCount);
         }
         return toResponse(run);
     }

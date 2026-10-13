@@ -27,7 +27,7 @@ export class UploadPanelComponent {
   jsonDropActive = false;
   csvError: string | null = null;
   jsonError: string | null = null;
-  primarySource: SourceType = SourceType.JSON;
+  primarySource: SourceType | null = SourceType.JSON;
   fallbackMissingValues = true;
   readonly maxFileSize = 5_000_000;
 
@@ -128,13 +128,14 @@ export class UploadPanelComponent {
   }
 
   startProcessing(): void {
-    if (!this.csvFile || !this.jsonFile || this.busy) {
+    const primarySource = this.primarySource;
+    if (!this.csvFile || !this.jsonFile || !primarySource || this.busy) {
       return;
     }
     this.processRequested.emit({
       csvFile: this.csvFile,
       jsonFile: this.jsonFile,
-      primarySource: this.primarySource,
+      primarySource,
       fallbackMissingValues: this.fallbackMissingValues
     });
   }

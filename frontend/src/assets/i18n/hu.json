@@ -16,7 +16,7 @@
   "common": {
     "csv": "CSV",
     "json": "JSON",
-    "notAvailable": "n.a.",
+    "notAvailable": "-",
     "none": "-",
     "yes": "Igen",
     "no": "Nem",
@@ -54,6 +54,7 @@
     "invalidType": "Nem megfelelő fájltípus.",
     "invalidSize": "A fájl mérete nem lehet nagyobb 5 MB-nál.",
     "primarySource": "Elsődleges adatforrás",
+    "primarySourceRequired": "Válassz elsődleges adatforrást.",
     "fallbackMissingValues": "Hiányzó érték pótlása a másodlagos forrásból",
     "process": "Feldolgozás"
   },
@@ -66,6 +67,7 @@
     "historyLast": "Utolsó: Futás #{runId} · elsődleges forrás: {primarySource} · {count} rekord · {date}",
     "historyCurrent": "Aktuális lista: Futás #{runId} · elsődleges forrás: {primarySource} · {count} rekord · {date}",
     "historyColumns": {
+    "active": "Aktív",
       "runId": "Azonosító",
       "startedAt": "Dátum és idő",
       "totalRecords": "Összes rekord",
@@ -73,8 +75,7 @@
       "invalid": "Hibás",
       "primarySource": "Elsődleges forrás",
       "fallbackMissingValues": "Hiányzó érték pótlása",
-      "files": "Felhasznált fájlok",
-      "active": "Aktív"
+      "files": "Felhasznált fájlok"
     }
   },
   "products": {
@@ -83,6 +84,7 @@
     "runSummary": "Futás #{runId} · elsődleges forrás: {primarySource} · {count} rekord",
     "emptyRun": "Még nincs normalizálási eredmény.",
     "emptyTable": "Nincs megjeleníthető rekord.",
+    "currentPageReport": "{first}–{last} / {totalRecords} rekord",
     "search": "Keresés",
     "searchPlaceholder": "SKU, név, gyártó vagy EAN",
     "sort": "Rendezés",
@@ -90,7 +92,10 @@
     "refresh": "Frissítés",
     "filters": {
       "contains": "Szűrés...",
-      "any": "Mind"
+      "date": "Dátum",
+      "any": "Mind",
+      "null": "Null értékek szűrése",
+      "clear": "Szűrés törlése"
     },
     "columns": {
       "sku": "SKU",

@@ -78,7 +78,7 @@ export interface ProductTableQuery {
   size: number;
   sort: string;
   filter?: string;
-  filters: Record<string, string | boolean>;
+  filters: Record<string, string | number | boolean>;
 }
 
 export interface ProcessSelection {
