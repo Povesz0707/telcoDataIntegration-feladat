@@ -92,7 +92,7 @@ class ProductServiceTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"sku:asc", "name:asc", "manufacturer:asc", "finalPriceHuf:asc",
-            "stock:asc", "updatedAt:asc", "source:asc"})
+            "stock:asc", "updatedAt:asc", "source:asc", "ean:asc", "valid:asc"})
     void findProductsAcceptsEverySupportedSortField(String sort) {
         stubMapper();
         NormalizedProduct product = product("SKU-1", "Cable", "ACME", 100, 2, true);
@@ -108,6 +108,23 @@ class ProductServiceTest {
         assertThatThrownBy(() -> service.findProducts(13L, "", "unknown:asc", false))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Unsupported sort field: unknown");
+    }
+
+    @Test
+    void findProductsRejectsUnsupportedSortDirection() {
+        when(productRepository.findAllByProcessingRunId(14L)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> service.findProducts(14L, "", "sku:descending", false))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Unsupported sort direction: descending");
+    }
+
+    @Test
+    void findProductsPageUsesTheSameSortValidation() {
+        assertThatThrownBy(() -> service.findProductsPage(14L, "", null, null, null, null,
+                null, null, null, null, false, 0, 20, "sku:descending"))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Unsupported sort direction: descending");
     }
 
     @Test

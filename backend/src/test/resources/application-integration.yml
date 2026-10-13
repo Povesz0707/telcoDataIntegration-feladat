@@ -5,4 +5,4 @@ spring:
     password: ${TEST_DB_PASSWORD:telco}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate

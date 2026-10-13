@@ -46,6 +46,22 @@ docker compose up --build
 
 Az adatbázis adatai a `postgres-data` Docker volume-ban maradnak meg.
 
+### Adatbázis-migrációk
+
+A PostgreSQL séma verziózott Flyway migrációkkal készül. Az alkalmazás induláskor lefuttatja
+a `backend/src/main/resources/db/migration` könyvtárban található migrációkat, a Hibernate pedig
+`validate` módban ellenőrzi, hogy az entitások és az adatbázis séma összhangban vannak-e.
+
+Új séma változtatásakor új, növekvő verziójú migrációt kell létrehozni, például:
+
+```text
+V2__add_processing_run_error_details.sql
+```
+
+A korábbi migrációs fájlokat nem szabad módosítani. A korábban `ddl-auto:update` módban létrehozott,
+már létező fejlesztői adatbázisokhoz a `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` beállítás baseline-t
+készít. Új adatbázis esetén a migrációk teljes sorozata fut le.
+
 ### Backend fejlesztői futtatása
 
 ```text

@@ -5,6 +5,7 @@ import hu.telcodata.integration.domain.enums.UploadStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,6 +36,7 @@ public class UploadBatch {
     private UploadStatus status;
 
     private Integer rowCount;
+    @Column(columnDefinition = "TEXT")
     private String errorMessage;
 
     public UploadBatch(SourceType sourceType, String originalFilename, String checksum,

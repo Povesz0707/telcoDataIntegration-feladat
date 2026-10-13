@@ -25,7 +25,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/telco
       SPRING_DATASOURCE_USERNAME: telco
       SPRING_DATASOURCE_PASSWORD: telco
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
       LOG_PATH: /app/logs
     ports:
       - "8080:8080"
