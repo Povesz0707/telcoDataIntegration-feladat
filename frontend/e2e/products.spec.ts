@@ -1,9 +1,29 @@
-import { APIRequestContext, expect, test } from '@playwright/test';
+import { APIRequestContext, Page, expect, test } from '@playwright/test';
 
-async function waitForBackend(request: APIRequestContext): Promise<void> {
+async function loginApi(request: APIRequestContext): Promise<{ Authorization: string }> {
   for (let attempt = 0; attempt < 30; attempt += 1) {
     try {
-      const response = await request.get('/api/processing-runs');
+      const response = await request.post('/api/auth/login', {
+        data: { username: 'telco_admin', password: 'telco_admin12345' }
+      });
+      if (response.ok()) {
+        const body = await response.json() as { accessToken: string };
+        return { Authorization: `Bearer ${body.accessToken}` };
+      }
+    } catch {
+      // The isolated E2E backend can still be starting up.
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 1_000));
+  }
+
+  throw new Error('The isolated E2E backend authentication did not become ready in time.');
+}
+
+async function waitForBackend(request: APIRequestContext, headers: { Authorization: string }): Promise<void> {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      const response = await request.get('/api/processing-runs', { headers });
       if (response.ok()) {
         return;
       }
@@ -21,7 +41,8 @@ test.describe('normalizált termékek felület', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeAll(async ({ request }) => {
-    await waitForBackend(request);
+    const headers = await loginApi(request);
+    await waitForBackend(request, headers);
 
     const csv = [
       'sku,product_name,gross_price_huf,stock_qty,brand',
@@ -66,6 +87,7 @@ test.describe('normalizált termékek felület', () => {
     ]);
 
     const sourceUpload = await request.post('/api/uploads/sources', {
+      headers,
       multipart: {
         csvFile: {
           name: 'playwright.csv',
@@ -84,6 +106,7 @@ test.describe('normalizált termékek felület', () => {
 
     const uploadedSources = JSON.parse(sourceUploadBody);
     const processing = await request.post('/api/processing-runs', {
+      headers,
       data: {
         csvBatchId: uploadedSources.csv.batchId,
         jsonBatchId: uploadedSources.json.batchId,
@@ -94,8 +117,19 @@ test.describe('normalizált termékek felület', () => {
     expect(processing.ok()).toBeTruthy();
   });
 
-  test('betölti a legutóbbi futást és megjeleníti a termékeket', async ({ page }) => {
+  async function login(page: Page): Promise<void> {
     await page.goto('/');
+    const loginButton = page.getByRole('button', { name: 'Bejelentkezés' });
+    if (await loginButton.isVisible()) {
+      await page.getByLabel('Felhasználónév').fill('telco_admin');
+      await page.getByLabel('Jelszó').fill('telco_admin12345');
+      await loginButton.click();
+    }
+    await expect(page.getByRole('heading', { name: 'Termékadatok normalizálása' })).toBeVisible();
+  }
+
+  test('betölti a legutóbbi futást és megjeleníti a termékeket', async ({ page }) => {
+    await login(page);
 
     await expect(page.getByRole('heading', { name: 'Termékadatok normalizálása' })).toBeVisible();
     await expect(page.getByText('Normalizált termékek', { exact: true })).toBeVisible();
@@ -105,7 +139,7 @@ test.describe('normalizált termékek felület', () => {
   });
 
   test('szűrés után az üres eredményállapot is megjelenik', async ({ page }) => {
-    await page.goto('/');
+    await login(page);
     const skuFilter = page.locator('app-product-table').getByPlaceholder('Szűrés...').first();
 
     await skuFilter.fill('SKU9001');
@@ -118,7 +152,7 @@ test.describe('normalizált termékek felület', () => {
   });
 
   test('issue dialogban külön jelennek meg a warningok és az errorok', async ({ page }) => {
-    await page.goto('/');
+    await login(page);
     const row = page.locator('app-product-table tbody tr').filter({ hasText: 'SKU9001' });
     await row.getByRole('button', { name: 'Jelzések megnyitása' }).click();
 
@@ -129,7 +163,7 @@ test.describe('normalizált termékek felület', () => {
   });
 
   test('a feldolgozások accordion alapból zárt, majd megnyitható', async ({ page }) => {
-    await page.goto('/');
+    await login(page);
     const historyButton = page.getByRole('button', { name: /Feldolgozások/ });
     await expect(historyButton).toHaveAttribute('aria-expanded', 'false');
     await expect(page.locator('app-processing-runs-table')).toBeHidden();
@@ -140,7 +174,7 @@ test.describe('normalizált termékek felület', () => {
   });
 
   test('feltöltésnél a hibás fájltípus elutasításra kerül, valid fájloknál engedélyezett a feldolgozás', async ({ page }) => {
-    await page.goto('/');
+    await login(page);
     await page.getByRole('button', { name: 'Adatforrások feltöltése' }).click();
     const dialog = page.getByRole('dialog', { name: 'Adatforrások feltöltése' });
     const processButton = dialog.getByRole('button', { name: 'Feldolgozás' });
@@ -167,7 +201,7 @@ test.describe('normalizált termékek felület', () => {
   });
 
   test('valid fájlokkal a felületről is elindítható a feldolgozás', async ({ page }) => {
-    await page.goto('/');
+    await login(page);
     await page.getByRole('button', { name: 'Adatforrások feltöltése' }).click();
     const dialog = page.getByRole('dialog', { name: 'Adatforrások feltöltése' });
 
@@ -202,6 +236,7 @@ test.describe('normalizált termékek felület', () => {
   });
 
   test('API hiba esetén a felület hibaüzenetet mutat', async ({ page }) => {
+    await login(page);
     await page.route('**/api/processing-runs/latest', route => route.fulfill({
       status: 500,
       contentType: 'application/json',

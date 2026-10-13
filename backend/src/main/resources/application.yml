@@ -25,3 +25,16 @@ spring:
 server:
   port: 8080
 
+security:
+  jwt:
+    secret: ${JWT_SECRET:VGgxczE2LWNoYXJhY3Rlci1zZWNyZXQta2V5LWZvci1sb2NhbC1kZXYtc2VydmljZQ==}
+    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900s}
+    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:7d}
+  initial-users:
+    admin:
+      username: ${APP_ADMIN_USERNAME:telco_admin}
+      password: ${APP_ADMIN_PASSWORD:telco_admin12345}
+    user:
+      username: ${APP_USER_USERNAME:telco_user}
+      password: ${APP_USER_PASSWORD:telco_user12345}
+

@@ -4,6 +4,7 @@ import hu.telcodata.integration.constant.MessageConstants;
 import hu.telcodata.integration.api.ApiErrorResponseDto;
 import hu.telcodata.integration.exception.BadRequestException;
 import hu.telcodata.integration.exception.ResourceNotFoundException;
+import hu.telcodata.integration.exception.UnauthorizedException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -41,6 +42,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponseDto> handleNotFound(ResourceNotFoundException exception,
                                                            HttpServletRequest request) {
         return response(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiErrorResponseDto> handleUnauthorized(UnauthorizedException exception,
+                                                                   HttpServletRequest request) {
+        return response(HttpStatus.UNAUTHORIZED, exception.getMessage(), request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

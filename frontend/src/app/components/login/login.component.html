@@ -1,0 +1,22 @@
+<main class="flex align-items-center justify-content-center min-h-screen p-3">
+  <p-card [header]="i18n.t('auth.title')" class="w-full md:w-30rem">
+    <p class="mt-0 text-color-secondary">{{ i18n.t('auth.description') }}</p>
+    <p-message *ngIf="error()" severity="error" [text]="error() || ''" styleClass="w-full mb-3"></p-message>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-column gap-3">
+      <div class="flex flex-column gap-2">
+        <label for="username">{{ i18n.t('auth.username') }}</label>
+        <input id="username" pInputText formControlName="username" autocomplete="username">
+      </div>
+      <div class="flex flex-column gap-2">
+        <label for="password">{{ i18n.t('auth.password') }}</label>
+        <p-password inputId="password" formControlName="password" [feedback]="false"
+                    [toggleMask]="true" [style]="{ width: '100%' }"
+                    inputStyleClass="w-full" autocomplete="current-password">
+        </p-password>
+      </div>
+      <p-button type="submit" [label]="i18n.t('auth.login')" icon="pi pi-sign-in"
+                [loading]="loading()" [disabled]="form.invalid || loading()" styleClass="w-full">
+      </p-button>
+    </form>
+  </p-card>
+</main>

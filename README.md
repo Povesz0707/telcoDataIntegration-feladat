@@ -39,12 +39,43 @@ docker compose up --build
 ```
 
 - Frontend: `http://localhost:4200`
+- Login: `http://localhost:4200/login`
+- Home: `http://localhost:4200/home`
 - Backend: `http://localhost:8080`
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 - PostgreSQL: `localhost:5432`, adatbázis `telco`, felhasználó `telco`
 
 Az adatbázis adatai a `postgres-data` Docker volume-ban maradnak meg.
+
+### Autentikáció és jogosultságok
+
+Az API JWT alapú autentikációt használ. A rövid élettartamú access token mellett a refresh token
+adatbázisban csak hash-elve kerül tárolásra, és minden refresh művelet token rotációt végez.
+
+Az autentikációs végpontok:
+
+```text
+POST /api/auth/login
+POST /api/auth/refresh
+POST /api/auth/logout
+GET  /api/auth/me
+```
+
+A `USER` szerepkör csak a feldolgozások és a normalizált termékek lekérdezésére jogosult. Az
+`ADMIN` szerepkör ezen felül fájlt tölthet fel és feldolgozást indíthat. A jogosultságokat a backend
+endpoint-szinten is ellenőrzi, a frontendben történő gomb-elrejtés csak felületi segítség.
+
+Lokális fejlesztésben, üres felhasználótáblánál az alkalmazás létrehozza a két konfigurált kezdő
+felhasználót:
+
+```text
+ADMIN: telco_admin / telco_admin12345
+USER:  telco_user  / telco_user12345
+```
+
+Production környezetben a jelszavakat és a JWT kulcsot kötelező felülírni az
+`APP_ADMIN_PASSWORD`, `APP_USER_PASSWORD` és `JWT_SECRET` környezeti változókkal.
 
 ### Adatbázis-migrációk
 
